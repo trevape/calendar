@@ -1,0 +1,1604 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mi calendario de trabajo</title>
+
+<style>
+:root {
+    --fondo: #f8fafc;
+    --blanco: #ffffff;
+    --texto: #0f172a;
+    --subtexto: #64748b;
+    --borde: #e2e8f0;
+    --borde-activo: #94a3b8;
+
+    --noche: #4f46e5;
+    --noche-claro: #e0e7ff;
+
+    --manana: #0284c7;
+    --manana-claro: #e0f2fe;
+
+    --tarde: #ea580c;
+    --tarde-claro: #ffedd5;
+
+    --libre: #16a34a;
+    --libre-claro: #dcfce7;
+
+    --vacaciones: #0d9488;
+    --vacaciones-claro: #ccfbf1;
+
+    --ap: #9333ea;
+    --ap-claro: #f3e8ff;
+
+    --permiso: #db2777;
+    --permiso-claro: #fce7f3;
+
+    --refuerzo-pago: #d97706;
+    --refuerzo-pago-claro: #fef3c7;
+
+    --refuerzo-horas: #2563eb;
+    --refuerzo-horas-claro: #dbeafe;
+
+    --sombra: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="dark"] {
+    --fondo: #090d16;
+    --blanco: #151c2c;
+    --texto: #f8fafc;
+    --subtexto: #94a3b8;
+    --borde: #26334d;
+    --borde-activo: #475569;
+
+    --noche: #818cf8;
+    --noche-claro: #1e1b4b;
+
+    --manana: #38bdf8;
+    --manana-claro: #082f49;
+
+    --tarde: #fb923c;
+    --tarde-claro: #431407;
+
+    --libre: #4ade80;
+    --libre-claro: #052e16;
+
+    --vacaciones: #2dd4bf;
+    --vacaciones-claro: #042f2e;
+
+    --ap: #c084fc;
+    --ap-claro: #3b0764;
+
+    --permiso: #f472b6;
+    --permiso-claro: #500724;
+
+    --refuerzo-pago: #fbbf24;
+    --refuerzo-pago-claro: #451a03;
+
+    --refuerzo-horas: #60a5fa;
+    --refuerzo-horas-claro: #172554;
+
+    --sombra: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+* { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 10px 10px 24px 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+    transition: background 0.3s, color 0.3s;
+    line-height: 1.4;
+}
+
+.contenedor { 
+    max-width: 520px; 
+    margin: 0 auto; 
+}
+
+header {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+header h1 { 
+    font-size: 22px; 
+    margin: 4px 0 2px 0; 
+    font-weight: 800; 
+    letter-spacing: -0.5px;
+}
+
+header p { 
+    color: var(--subtexto); 
+    margin: 0; 
+    font-size: 13px; 
+    font-weight: 700; 
+}
+
+/* MENÚ SUPERIOR SCROLLABLE EN MÓVIL */
+.top-bar-controls {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    overflow-x: auto;
+    padding: 4px 2px 8px 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.top-bar-controls::-webkit-scrollbar { display: none; }
+
+.boton-action {
+    background: var(--blanco);
+    color: var(--texto);
+    border: 1px solid var(--borde);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+}
+.boton-action:active { transform: scale(0.96); }
+
+/* PANEL Y PESTAÑAS */
+.panel {
+    background: var(--blanco);
+    padding: 14px;
+    border-radius: 20px;
+    box-shadow: var(--sombra);
+    border: 1px solid var(--borde);
+    margin-bottom: 16px;
+}
+
+.pestanas {
+    display: flex;
+    gap: 6px;
+    background: var(--fondo);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    border: 1px solid var(--borde);
+}
+
+.btn-pestana {
+    background: transparent;
+    color: var(--subtexto);
+    border: none;
+    padding: 10px;
+    border-radius: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    flex: 1;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.btn-pestana.activa { 
+    background: var(--blanco); 
+    color: var(--texto); 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08); 
+}
+
+/* NAVEGACIÓN DE MES */
+.navegacion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.navegacion h2 { 
+    text-align: center; 
+    text-transform: capitalize; 
+    margin: 0; 
+    font-size: 19px; 
+    font-weight: 800; 
+    letter-spacing: -0.3px;
+}
+
+.boton-nav-arrow {
+    background: var(--fondo);
+    color: var(--texto);
+    border: 1px solid var(--borde);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.boton-hoy { 
+    background: var(--fondo); 
+    color: var(--subtexto); 
+    border: 1px solid var(--borde); 
+    margin: 2px auto 12px; 
+    display: block; 
+    font-size: 11px; 
+    padding: 5px 14px; 
+    border-radius: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* LEYENDA */
+.leyenda {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 8px 0 14px;
+}
+
+.etiqueta {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+
+.etiqueta.noche { background: var(--noche-claro); color: var(--noche); }
+.etiqueta.manana { background: var(--manana-claro); color: var(--manana); }
+.etiqueta.tarde { background: var(--tarde-claro); color: var(--tarde); }
+.etiqueta.libre { background: var(--libre-claro); color: var(--libre); }
+.etiqueta.vacaciones { background: var(--vacaciones-claro); color: var(--vacaciones); }
+.etiqueta.ap { background: var(--ap-claro); color: var(--ap); }
+.etiqueta.permiso { background: var(--permiso-claro); color: var(--permiso); }
+.etiqueta.refuerzo-pago { background: var(--refuerzo-pago-claro); color: var(--refuerzo-pago); }
+.etiqueta.refuerzo-horas { background: var(--refuerzo-horas-claro); color: var(--refuerzo-horas); }
+
+/* GRID CALENDARIO */
+.calendario {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.dia-semana { 
+    text-align: center; 
+    padding: 4px 0; 
+    font-size: 11px; 
+    font-weight: 800; 
+    color: var(--subtexto); 
+}
+
+.dia {
+    min-height: 64px;
+    padding: 4px 2px;
+    border-radius: 10px;
+    border: 1px solid var(--borde);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blanco);
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    transition: transform 0.1s;
+}
+.dia:active { transform: scale(0.95); }
+.dia.vacio { background: transparent; border-color: transparent; cursor: default; }
+.dia.vacio:active { transform: none; }
+
+.numero { font-size: 13px; font-weight: 800; }
+
+.turno {
+    width: 100%;
+    padding: 3px 1px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.dia.noche { background: var(--noche-claro); border-color: var(--noche); }
+.dia.noche .turno { background: var(--noche); color: #fff; }
+
+.dia.manana { background: var(--manana-claro); border-color: var(--manana); }
+.dia.manana .turno { background: var(--manana); color: #fff; }
+
+.dia.tarde { background: var(--tarde-claro); border-color: var(--tarde); }
+.dia.tarde .turno { background: var(--tarde); color: #fff; }
+
+.dia.libre { background: var(--libre-claro); border-color: var(--libre); }
+.dia.libre .turno { background: var(--libre); color: #fff; }
+
+.dia.vacaciones { background: var(--vacaciones-claro); border-color: var(--vacaciones); }
+.dia.vacaciones .turno { background: var(--vacaciones); color: #fff; }
+
+.dia.ap { background: var(--ap-claro); border-color: var(--ap); }
+.dia.ap .turno { background: var(--ap); color: #fff; }
+
+.dia.permiso { background: var(--permiso-claro); border-color: var(--permiso); }
+.dia.permiso .turno { background: var(--permiso); color: #fff; }
+
+.dia.refuerzo-pago { background: var(--refuerzo-pago-claro); border-color: var(--refuerzo-pago); }
+.dia.refuerzo-pago .turno { background: var(--refuerzo-pago); color: #fff; }
+
+.dia.refuerzo-horas { background: var(--refuerzo-horas-claro); border-color: var(--refuerzo-horas); }
+.dia.refuerzo-horas .turno { background: var(--refuerzo-horas); color: #fff; }
+
+.dia.modificado::after {
+    content: "•";
+    position: absolute;
+    top: -2px; 
+    right: 3px;
+    font-size: 16px;
+    color: #d97706;
+}
+
+.badge-horas {
+    font-size: 8px;
+    padding: 1px 3px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.12);
+    color: inherit;
+    font-weight: 800;
+}
+[data-theme="dark"] .badge-horas { background: rgba(255,255,255,0.2); }
+
+.dia.hoy { outline: 2px solid var(--texto); outline-offset: -2px; }
+
+/* TARJETAS RESUMEN */
+.resumen {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.tarjeta {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--fondo);
+    border: 1px solid var(--borde);
+}
+.tarjeta small { 
+    display: block; 
+    color: var(--subtexto); 
+    margin-bottom: 2px; 
+    font-size: 11px; 
+    font-weight: 700; 
+}
+.tarjeta strong { font-size: 15px; font-weight: 800; word-break: break-word; color: var(--texto); }
+
+/* MODALES MODERNOS (BOTTOM SHEET EN MÓVIL) */
+.modal-overlay {
+    position: fixed;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+@media (min-width: 600px) {
+    .modal-overlay { align-items: center; padding: 16px; }
+}
+.modal-overlay.activo { opacity: 1; pointer-events: auto; }
+
+.modal {
+    background: var(--blanco);
+    padding: 20px 18px 24px 18px;
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--sombra);
+    border: 1px solid var(--borde);
+    max-height: 88vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.25s ease;
+    position: relative;
+}
+@media (min-width: 600px) {
+    .modal { border-radius: 24px; transform: translateY(0); }
+}
+.modal-overlay.activo .modal { transform: translateY(0); }
+
+/* TIRADOR HOJA MÓVIL */
+.drag-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--borde);
+    border-radius: 10px;
+    margin: -8px auto 14px auto;
+}
+
+.modal-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.modal h3 { margin: 0; font-size: 18px; font-weight: 800; }
+.modal-subtitulo { font-size: 12px; color: var(--subtexto); margin: 2px 0 14px 0; font-weight: 600; }
+
+.grid-opciones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.btn-opcion {
+    padding: 12px 6px;
+    border-radius: 12px;
+    border: 1px solid var(--borde);
+    background: var(--fondo);
+    color: var(--texto);
+    cursor: pointer;
+    text-align: center;
+    font-weight: 800;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+}
+.btn-opcion:active { transform: scale(0.96); }
+
+/* REDISEÑO COMPLETO DE SECCIÓN REFUERZO / LLAMAMIENTO */
+.seccion-refuerzo-card {
+    background: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 14px;
+    margin-top: 10px;
+}
+
+.seccion-refuerzo-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--texto);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* SELECTOR SEGMENTADO (TIPO DE REFUERZO) */
+.segmented-control {
+    display: flex;
+    gap: 4px;
+    background: var(--blanco);
+    padding: 3px;
+    border-radius: 12px;
+    border: 1px solid var(--borde);
+    margin-bottom: 12px;
+}
+
+.segmented-option {
+    flex: 1;
+    text-align: center;
+    padding: 8px 4px;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 9px;
+    cursor: pointer;
+    color: var(--subtexto);
+    transition: all 0.2s;
+    user-select: none;
+    line-height: 1.2;
+}
+
+.segmented-option.activo {
+    background: var(--texto);
+    color: var(--blanco);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* CHIPS SELECCIONABLES (TARIFAS E ÍNDICES) */
+.chips-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.chip-item {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.chip-item.activo {
+    border-color: var(--texto);
+    background: var(--blanco);
+    outline: 2px solid var(--texto);
+}
+
+.chip-item .chip-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--texto);
+    display: block;
+}
+
+.chip-item .chip-sub {
+    font-size: 10px;
+    color: var(--subtexto);
+    font-weight: 600;
+}
+
+/* CONTADOR NUMÉRICO DE HORAS CON BOTONES +/- */
+.counter-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    padding: 6px 12px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.counter-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--borde);
+    background: var(--fondo);
+    color: var(--texto);
+    font-size: 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.counter-btn:active { transform: scale(0.92); }
+
+.counter-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--texto);
+    text-align: center;
+}
+
+/* INPUTS Y SELECTS ESTÁNDAR RE-ESTILIZADOS */
+.input-grupo { margin-bottom: 12px; }
+.input-grupo label { display: block; font-size: 11px; font-weight: 800; color: var(--subtexto); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.input-grupo input, .input-grupo select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--borde);
+    background: var(--blanco);
+    color: var(--texto);
+    font-size: 13px;
+    outline: none;
+    font-weight: 700;
+    appearance: none;
+}
+
+/* BOTONES PRINCIPALES */
+.btn-primary {
+    width: 100%;
+    background: var(--texto);
+    color: var(--blanco);
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-secondary {
+    width: 100%;
+    background: transparent;
+    color: var(--subtexto);
+    border: 1px solid var(--borde);
+    padding: 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 6px;
+}
+
+/* TABLA ANUAL */
+.tabla-contenedor { 
+    overflow-x: auto; 
+    margin-top: 10px; 
+    border-radius: 12px; 
+    border: 1px solid var(--borde); 
+    -webkit-overflow-scrolling: touch;
+}
+table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--borde); white-space: nowrap; }
+th { background: var(--fondo); color: var(--subtexto); font-weight: 800; text-transform: uppercase; font-size: 9px; }
+tr:last-child td { border-bottom: none; }
+
+footer { text-align: center; color: var(--subtexto); font-size: 11px; margin-top: 16px; font-weight: 700; }
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<header>
+    <h1>Mi Calendario</h1>
+    <p id="subtituloGrupo">Grupo</p>
+    <div class="top-bar-controls">
+        <button class="boton-action" onclick="toggleDarkMode()" id="btnTheme">🌙 Oscuro</button>
+        <button class="boton-action" onclick="abrirAjustes()">⚙️ Ajustes</button>
+        <button class="boton-action" onclick="exportarGoogleCalendar()" style="color:var(--manana);">📆 Google Cal</button>
+        <button class="boton-action" onclick="exportarDatos()">💾 Backup</button>
+        <button class="boton-action" onclick="document.getElementById('fileInput').click()">📥 Cargar</button>
+        <input type="file" id="fileInput" style="display:none" onchange="importarDatos(event)">
+    </div>
+</header>
+
+<main class="panel">
+
+    <div class="pestanas">
+        <button class="btn-pestana activa" id="tabMes" onclick="cambiarPestana('mes')">📅 Calendario</button>
+        <button class="btn-pestana" id="tabAnual" onclick="cambiarPestana('anual')">📊 Resumen</button>
+    </div>
+
+    <!-- VISTA MENSUAL -->
+    <div id="vistaMensual">
+        <div class="navegacion">
+            <button class="boton-nav-arrow" onclick="cambiarMes(-1)">❮</button>
+            <h2 id="tituloMes"></h2>
+            <button class="boton-nav-arrow" onclick="cambiarMes(1)">❯</button>
+        </div>
+
+        <div>
+            <button class="boton-hoy" onclick="irAHoy()">Ir al mes actual</button>
+        </div>
+
+        <div class="leyenda">
+            <span class="etiqueta noche">Noche</span>
+            <span class="etiqueta manana">Mañana</span>
+            <span class="etiqueta tarde">Tarde</span>
+            <span class="etiqueta libre">Libre</span>
+            <span class="etiqueta vacaciones">Vacac.</span>
+            <span class="etiqueta ap">AP</span>
+            <span class="etiqueta permiso">Permiso</span>
+            <span class="etiqueta refuerzo-pago">Ref (€)</span>
+            <span class="etiqueta refuerzo-horas">Ref (H)</span>
+        </div>
+
+        <div class="calendario">
+            <div class="dia-semana">L</div>
+            <div class="dia-semana">M</div>
+            <div class="dia-semana">X</div>
+            <div class="dia-semana">J</div>
+            <div class="dia-semana">V</div>
+            <div class="dia-semana">S</div>
+            <div class="dia-semana">D</div>
+        </div>
+
+        <div class="calendario" id="calendario" style="margin-top: 4px;"></div>
+
+        <div class="resumen">
+            <div class="tarjeta">
+                <small>Noches</small>
+                <strong id="totalNoches">0</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Mañanas</small>
+                <strong id="totalMananas">0</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Tardes</small>
+                <strong id="totalTardes">0</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Libres</small>
+                <strong id="totalLibres">0</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Refuerzos (€)</small>
+                <strong id="totalEurosMes" style="color:var(--refuerzo-pago);">0,00 €</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Refuerzo (H)</small>
+                <strong id="totalHorasRefMes" style="color:var(--refuerzo-horas);">+0 h</strong>
+            </div>
+            <div class="tarjeta">
+                <small>AP Usados</small>
+                <strong id="totalApMes">0 d</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Permisos</small>
+                <strong id="totalPermisosMes">0 d</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Vacaciones</small>
+                <strong id="totalVacMes">0 h</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Horas Totales</small>
+                <strong id="totalHorasMes">0 h</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA ANUAL -->
+    <div id="vistaAnual" style="display: none;">
+        <h3 style="margin-top:0; margin-bottom:12px; font-size:16px;">Control Anual — <span id="anioAnual">2026</span></h3>
+        
+        <div class="resumen" style="margin-bottom: 12px;">
+            <div class="tarjeta">
+                <small>Bolsa Vacaciones</small>
+                <strong id="vacTotalAnual">0 h</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Vacaciones Usadas</small>
+                <strong id="vacUsadasAnual">0 h</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Vacaciones Restantes</small>
+                <strong id="vacRestantesAnual" style="color:var(--vacaciones);">0 h</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Asuntos Propios (AP)</small>
+                <strong id="apAnualResumen">0 / 6 d</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Total Permisos</small>
+                <strong id="permisosAnualResumen">0 d</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Total Refuerzos (€)</small>
+                <strong id="totalEurosAnual" style="color:var(--refuerzo-pago);">0,00 €</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Total Horas Refuerzo</small>
+                <strong id="totalHorasDeberAnual" style="color:var(--refuerzo-horas);">0 h</strong>
+            </div>
+            <div class="tarjeta">
+                <small>Balance Convenio</small>
+                <strong id="balanceConvenioAnual">0 h</strong>
+            </div>
+        </div>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mes</th>
+                        <th>N</th>
+                        <th>M</th>
+                        <th>T</th>
+                        <th>L</th>
+                        <th>Vac</th>
+                        <th>AP</th>
+                        <th>Perm</th>
+                        <th>Ref (€)</th>
+                        <th>Ref (h)</th>
+                        <th>Horas</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaAnual">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<footer>
+    Calendario Turnos
+</footer>
+
+</div>
+
+<!-- MODAL SELECCIÓN DE GRUPO (PRIMERA VEZ) -->
+<div class="modal-overlay" id="modalGrupo">
+    <div class="modal">
+        <div class="drag-handle"></div>
+        <h3>Selecciona tu Grupo</h3>
+        <p class="modal-subtitulo">Elige tu grupo para configurar el calendario:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button class="btn-primary" style="background: var(--manana);" onclick="elegirGrupo(1)">Grupo G-1</button>
+            <button class="btn-primary" style="background: var(--libre);" onclick="elegirGrupo(2)">Grupo G-2</button>
+            <button class="btn-primary" style="background: var(--noche);" onclick="elegirGrupo(3)">Grupo G-3</button>
+            <button class="btn-primary" style="background: var(--tarde);" onclick="elegirGrupo(4)">Grupo G-4</button>
+            <button class="btn-primary" style="background: var(--subtexto);" onclick="elegirGrupo(5)">Grupo G-5</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDICIÓN DE DÍA (REDISEÑADO PERFECTO PARA MÓVIL) -->
+<div class="modal-overlay" id="modalEdicion">
+    <div class="modal">
+        <div class="drag-handle"></div>
+        <div class="modal-header-flex">
+            <div>
+                <h3 id="modalTitulo">Modificar Día</h3>
+                <div class="modal-subtitulo" id="modalSubtitulo" style="margin-bottom:0;">Actual: Libre</div>
+            </div>
+            <button onclick="cerrarModal()" style="background:var(--fondo); border:1px solid var(--borde); border-radius:50%; width:30px; height:30px; font-weight:800; color:var(--subtexto); cursor:pointer;">✕</button>
+        </div>
+        
+        <!-- OPCIONES RÁPIDAS DE AUSENCIA/ESTADO -->
+        <div class="grid-opciones" id="opcionesEdicionContainer">
+            <div class="btn-opcion" style="background:var(--vacaciones-claro); color:var(--vacaciones); border-color:var(--vacaciones);" onclick="guardarCambioTurno('vacaciones')">
+                <span>🌴</span>
+                <span>Vacaciones</span>
+            </div>
+            <div class="btn-opcion" style="background:var(--ap-claro); color:var(--ap); border-color:var(--ap);" onclick="guardarCambioTurno('ap')">
+                <span>📑</span>
+                <span>AP</span>
+            </div>
+            <div class="btn-opcion" style="background:var(--permiso-claro); color:var(--permiso); border-color:var(--permiso);" onclick="guardarCambioTurno('permiso')">
+                <span>🏥</span>
+                <span>Permiso</span>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE REFUERZO Y LLAMAMIENTO OPTIMIZADA -->
+        <div class="seccion-refuerzo-card">
+            <h4>Refuerzo</h4>
+            
+            <!-- CONTROL SEGMENTADO -->
+            <div class="segmented-control">
+                <div class="segmented-option activo" id="segNinguno" onclick="restaurarTurnoOriginal()">Ninguno</div>
+                <div class="segmented-option" id="segPago" onclick="seleccionarTipoRefuerzo('pago')">Ref. (€)</div>
+                <div class="segmented-option" id="segHoras" onclick="seleccionarTipoRefuerzo('horas')">Ref. (Horas)</div>
+            </div>
+
+            <!-- BLOQUE REFUERZO DE PAGO (€) -->
+            <div id="camposPago" style="display:none;">
+                <label style="font-size: 11px; font-weight: 800; color: var(--subtexto); display:block; margin-bottom:6px; text-transform:uppercase;">Tarifa aplicable:</label>
+                <div class="chips-grid">
+                    <div class="chip-item activo" id="tarifa-31.53" onclick="seleccionarTarifa('31.53')">
+                        <span class="chip-title">Ordinaria</span>
+                        <span class="chip-sub">31,53 €/h</span>
+                    </div>
+                    <div class="chip-item" id="tarifa-34.55" onclick="seleccionarTarifa('34.55')">
+                        <span class="chip-title">Nocturna</span>
+                        <span class="chip-sub">34,55 €/h</span>
+                    </div>
+                    <div class="chip-item" id="tarifa-36.05" onclick="seleccionarTarifa('36.05')">
+                        <span class="chip-title">Festiva</span>
+                        <span class="chip-sub">36,05 €/h</span>
+                    </div>
+                    <div class="chip-item" id="tarifa-37.58" onclick="seleccionarTarifa('37.58')">
+                        <span class="chip-title">Festiva Noct.</span>
+                        <span class="chip-sub">37,58 €/h</span>
+                    </div>
+                </div>
+
+                <label style="font-size: 11px; font-weight: 800; color: var(--subtexto); display:block; margin-bottom:6px; text-transform:uppercase;">Horas trabajadas:</label>
+                <div class="counter-box">
+                    <button class="counter-btn" onclick="modificarHorasInput('inputHorasPago', -0.5)">-</button>
+                    <span class="counter-value" id="valHorasPago">8 h</span>
+                    <button class="counter-btn" onclick="modificarHorasInput('inputHorasPago', 0.5)">+</button>
+                </div>
+                <input type="hidden" id="inputHorasPago" value="8">
+            </div>
+
+            <!-- BLOQUE REFUERZO DE HORAS -->
+            <div id="camposHoras" style="display:none;">
+                <label style="font-size: 11px; font-weight: 800; color: var(--subtexto); display:block; margin-bottom:6px; text-transform:uppercase;">Índice ESAN:</label>
+                <div class="chips-grid">
+                    <div class="chip-item activo" id="indice-1.50" onclick="seleccionarIndice('1.50')">
+                        <span class="chip-title">L-V Diurna</span>
+                        <span class="chip-sub">x 1,50</span>
+                    </div>
+                    <div class="chip-item" id="indice-1.75" onclick="seleccionarIndice('1.75')">
+                        <span class="chip-title">L-V Nocturna</span>
+                        <span class="chip-sub">x 1,75</span>
+                    </div>
+                    <div class="chip-item" id="indice-2.00" onclick="seleccionarIndice('2.00')">
+                        <span class="chip-title">Finde / Festivo</span>
+                        <span class="chip-sub">x 2,00</span>
+                    </div>
+                    <div class="chip-item" id="indice-2.15" onclick="seleccionarIndice('2.15')">
+                        <span class="chip-title">Finde Nocturno</span>
+                        <span class="chip-sub">x 2,15</span>
+                    </div>
+                </div>
+
+                <label style="font-size: 11px; font-weight: 800; color: var(--subtexto); display:block; margin-bottom:6px; text-transform:uppercase;">Horas realizadas:</label>
+                <div class="counter-box">
+                    <button class="counter-btn" onclick="modificarHorasInput('inputHorasReal', -0.5)">-</button>
+                    <span class="counter-value" id="valHorasReal">8 h</span>
+                    <button class="counter-btn" onclick="modificarHorasInput('inputHorasReal', 0.5)">+</button>
+                </div>
+                <input type="hidden" id="inputHorasReal" value="8">
+            </div>
+
+            <button id="btnAplicarRefuerzo" class="btn-primary" style="margin-top:6px; display:none; background:var(--manana);" onclick="guardarRefuerzoDia()">Aplicar Refuerzo</button>
+        </div>
+
+        <button class="btn-secondary" style="margin-top:12px;" onclick="restaurarTurnoOriginal()">Restaurar</button>
+    </div>
+</div>
+
+<!-- MODAL DE AJUSTES -->
+<div class="modal-overlay" id="modalAjustes">
+    <div class="modal">
+        <div class="drag-handle"></div>
+        <h3>Ajustes Generales</h3>
+        <p class="modal-subtitulo">Configuración de parámetros de convenio:</p>
+        
+        <div class="input-grupo">
+            <label>Grupo Actual:</label>
+            <select id="selectGrupoAjuste">
+                <option value="1">Grupo G-1</option>
+                <option value="2">Grupo G-2</option>
+                <option value="3">Grupo G-3</option>
+                <option value="4">Grupo G-4</option>
+                <option value="5">Grupo G-5</option>
+            </select>
+        </div>
+        <div class="input-grupo">
+            <label>Horas Objetivo Convenio:</label>
+            <input type="number" id="inputConvenio" value="1592">
+        </div>
+        <div class="input-grupo">
+            <label>Días Máximos AP:</label>
+            <input type="number" id="inputMaxAp" value="6">
+        </div>
+        <div class="input-grupo">
+            <label>Horas Turno Laborable (L-V):</label>
+            <input type="number" id="inputHorasLab" value="8">
+        </div>
+        <div class="input-grupo">
+            <label>Horas Turno Finde (Sáb-Dom):</label>
+            <input type="number" id="inputHorasFinde" value="12">
+        </div>
+
+        <button class="btn-primary" style="margin-top:8px;" onclick="guardarAjustes()">Guardar Ajustes</button>
+        <button class="btn-secondary" onclick="cerrarAjustes()">Cancelar</button>
+    </div>
+</div>
+
+<script>
+// Fecha de referencia: Lunes 29 de Diciembre de 2025 (inicio de la semana natural del 1/1/2026)
+const fechaInicioBase = new Date(2025, 11, 29);
+
+let grupoUsuario = localStorage.getItem('g_grupo');
+let mesActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let diaSeleccionadoKey = null;
+
+let tipoRefuerzoSeleccionado = 'ninguno';
+let tarifaSeleccionada = '31.53';
+let indiceSeleccionado = '1.50';
+
+let modificaciones = JSON.parse(localStorage.getItem('g_modificaciones')) || {};
+let ajustes = JSON.parse(localStorage.getItem('g_ajustes')) || {
+    convenio: 1592,
+    maxAp: 6,
+    horasLab: 8,
+    horasFinde: 12
+};
+
+const nombresMeses = [
+    "enero", "febrero", "marzo", "abril",
+    "mayo", "junio", "julio", "agosto",
+    "septiembre", "octubre", "noviembre", "diciembre"
+];
+
+if (!grupoUsuario) {
+    document.getElementById('modalGrupo').classList.add('activo');
+} else {
+    actualizarSubtituloGrupo();
+}
+
+if (localStorage.getItem('g_theme') === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('btnTheme').textContent = '☀️ Claro';
+}
+
+function elegirGrupo(numGrupo) {
+    grupoUsuario = numGrupo;
+    localStorage.setItem('g_grupo', numGrupo);
+    document.getElementById('modalGrupo').classList.remove('activo');
+    actualizarSubtituloGrupo();
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+function actualizarSubtituloGrupo() {
+    document.getElementById('subtituloGrupo').textContent = `Grupo G-${grupoUsuario}`;
+}
+
+function toggleDarkMode() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('g_theme', 'light');
+        document.getElementById('btnTheme').textContent = '🌙 Oscuro';
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('g_theme', 'dark');
+        document.getElementById('btnTheme').textContent = '☀️ Claro';
+    }
+}
+
+function normalizarFecha(fecha) {
+    return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+}
+
+function diasEntre(fecha1, fecha2) {
+    const a = Date.UTC(fecha1.getFullYear(), fecha1.getMonth(), fecha1.getDate());
+    const b = Date.UTC(fecha2.getFullYear(), fecha2.getMonth(), fecha2.getDate());
+    return Math.round((a - b) / 86400000);
+}
+
+function getFechaKey(fecha) {
+    const y = fecha.getFullYear();
+    const m = String(fecha.getMonth() + 1).padStart(2, '0');
+    const d = String(fecha.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+// CÁLCULO DEL CICLO SEMANAL NATURAL (M -> L -> T -> N -> L)
+function obtenerTurnoOriginal(fecha) {
+    const dia = normalizarFecha(fecha);
+    const difDias = diasEntre(dia, fechaInicioBase);
+    
+    // Semanas completas transcurridas desde el 29/12/2025
+    const difSemanas = Math.floor(difDias / 7);
+    const diaSemana = (dia.getDay() + 6) % 7; // 0=Lunes ... 5=Sábado, 6=Domingo
+
+    // Posiciones iniciales del ciclo de 5 semanas el 1/1/2026:
+    // G1 = Mañana (0), G2 = Libre (1), G4 = Tarde (2), G3 = Noche (3), G5 = Libre (4)
+    const offsetSemanas = { 1: 0, 2: 1, 4: 2, 3: 3, 5: 4 };
+    const semanaBase = offsetSemanas[Number(grupoUsuario) || 3];
+    
+    let idxSemana = (semanaBase + difSemanas) % 5;
+    if (idxSemana < 0) idxSemana += 5;
+
+    // Secuencia de los 5 bloques semanales del ciclo rotativo
+    const tiposSemanales = ["manana", "libre", "tarde", "noche", "libre"];
+    const tipoSemana = tiposSemanales[idxSemana];
+
+    if (tipoSemana === "manana") {
+        return { tipo: "manana", nombre: "Mañana", trabaja: true };
+    } else if (tipoSemana === "noche") {
+        return { tipo: "noche", nombre: "Noche", trabaja: true };
+    } else if (tipoSemana === "tarde") {
+        if (diaSemana < 5) { // Lunes a Viernes
+            return { tipo: "tarde", nombre: "Tarde", trabaja: true };
+        } else { // Sábado y Domingo del turno de Tarde son Libres
+            return { tipo: "libre", nombre: "Libre", trabaja: false };
+        }
+    } else { // Semana Libre
+        return { tipo: "libre", nombre: "Libre", trabaja: false };
+    }
+}
+
+function obtenerTurnoFinal(fecha) {
+    const key = getFechaKey(fecha);
+    if (modificaciones[key]) {
+        return modificaciones[key];
+    }
+    const orig = obtenerTurnoOriginal(fecha);
+    return {
+        tipo: orig.tipo,
+        nombre: orig.nombre,
+        trabaja: orig.trabaja,
+        modificado: false
+    };
+}
+
+function getHorasNominalesDia(fecha) {
+    const diaSemana = fecha.getDay();
+    const esFinde = (diaSemana === 0 || diaSemana === 6);
+    const turno = obtenerTurnoFinal(fecha);
+
+    // Si es fin de semana y trabaja (Mañanas o Noches), son 12h
+    if (esFinde && turno.trabaja) {
+        return Number(ajustes.horasFinde);
+    }
+    // Lunes a Viernes laborables
+    return Number(ajustes.horasLab);
+}
+
+function calcularDatosAnualesTotales(anioObjetivo) {
+    let horasCuadrantePuras = 0;
+    let vacUsadas = 0;
+    let apUsados = 0;
+    let permisosUsados = 0;
+    let horasRealesTrabajo = 0;
+    let totalEurosAnual = 0;
+    let totalHorasDeberAnual = 0;
+
+    const inicioAnio = new Date(anioObjetivo, 0, 1);
+    const finAnio = new Date(anioObjetivo, 11, 31);
+    let curr = new Date(inicioAnio);
+
+    while (curr <= finAnio) {
+        const turnoOrig = obtenerTurnoOriginal(curr);
+        const hNom = getHorasNominalesDia(curr);
+
+        if (turnoOrig.trabaja) {
+            horasCuadrantePuras += hNom;
+        }
+
+        const key = getFechaKey(curr);
+        const mod = modificaciones[key];
+
+        if (mod) {
+            if (mod.tipo === 'vacaciones') {
+                vacUsadas += hNom;
+            } else if (mod.tipo === 'ap') {
+                apUsados += 1;
+                horasRealesTrabajo += hNom;
+            } else if (mod.tipo === 'permiso') {
+                permisosUsados += 1;
+                horasRealesTrabajo += hNom;
+            } else if (mod.tipo === 'refuerzo_pago') {
+                totalEurosAnual += mod.euros || 0;
+            } else if (mod.tipo === 'refuerzo_horas') {
+                totalHorasDeberAnual += mod.horasGeneradas || 0;
+            } else if (['noche', 'manana', 'tarde'].includes(mod.tipo)) {
+                horasRealesTrabajo += hNom;
+            }
+        } else {
+            if (turnoOrig.trabaja) {
+                horasRealesTrabajo += hNom;
+            }
+        }
+
+        curr.setDate(curr.getDate() + 1);
+    }
+
+    let bolsaVacacionesTotal = Math.max(0, horasCuadrantePuras - Number(ajustes.convenio));
+
+    return {
+        horasCuadrantePuras,
+        bolsaVacacionesTotal,
+        vacUsadas,
+        apUsados,
+        permisosUsados,
+        horasRealesTrabajo,
+        totalEurosAnual,
+        totalHorasDeberAnual
+    };
+}
+
+function dibujarCalendario() {
+    const anio = mesActual.getFullYear();
+    const mes = mesActual.getMonth();
+    const datosAnio = calcularDatosAnualesTotales(anio);
+
+    document.getElementById("tituloMes").textContent = nombresMeses[mes] + " " + anio;
+
+    const calendario = document.getElementById("calendario");
+    calendario.innerHTML = "";
+
+    const primerDia = new Date(anio, mes, 1);
+    const ultimoDia = new Date(anio, mes + 1, 0).getDate();
+    const desplazamiento = (primerDia.getDay() + 6) % 7;
+
+    for (let i = 0; i < desplazamiento; i++) {
+        const vacio = document.createElement("div");
+        vacio.className = "dia vacio";
+        calendario.appendChild(vacio);
+    }
+
+    let nachesCount = 0, mananasCount = 0, tardesCount = 0, libresCount = 0, horasMes = 0, vacMes = 0, apMes = 0, permisoMes = 0, eurosMes = 0, horasRefMes = 0;
+    const hoy = normalizarFecha(new Date());
+
+    for (let numeroDia = 1; numeroDia <= ultimoDia; numeroDia++) {
+        const fecha = new Date(anio, mes, numeroDia);
+        const turno = obtenerTurnoFinal(fecha);
+        const hNom = getHorasNominalesDia(fecha);
+
+        const dia = document.createElement("div");
+        dia.className = "dia";
+
+        if (fecha.getTime() === hoy.getTime()) dia.classList.add("hoy");
+        if (turno.tipo !== "antes") dia.classList.add(turno.tipo);
+        if (turno.modificado) dia.classList.add("modificado");
+
+        const numero = document.createElement("div");
+        numero.className = "numero";
+        numero.textContent = numeroDia;
+
+        const etiqueta = document.createElement("div");
+        etiqueta.className = "turno";
+        etiqueta.textContent = turno.nombre;
+
+        dia.appendChild(numero);
+        dia.appendChild(etiqueta);
+
+        if (turno.tipo === 'refuerzo_pago') {
+            const badge = document.createElement("span");
+            badge.className = "badge-horas";
+            badge.textContent = `${turno.euros.toFixed(0)}€`;
+            dia.appendChild(badge);
+        } else if (turno.tipo === 'refuerzo_horas') {
+            const badge = document.createElement("span");
+            badge.className = "badge-horas";
+            badge.textContent = `+${turno.horasGeneradas}h`;
+            dia.appendChild(badge);
+        } else if (hNom === 12 && turno.trabaja) {
+            const badge = document.createElement("span");
+            badge.className = "badge-horas";
+            badge.textContent = "12h";
+            dia.appendChild(badge);
+        }
+
+        dia.onclick = () => abrirModalEdicion(fecha, turno);
+        calendario.appendChild(dia);
+
+        if (turno.tipo === 'noche') { nachesCount++; horasMes += hNom; }
+        else if (turno.tipo === 'manana') { mananasCount++; horasMes += hNom; }
+        else if (turno.tipo === 'tarde') { tardesCount++; horasMes += hNom; }
+        else if (turno.tipo === 'libre') { libresCount++; }
+        else if (turno.tipo === 'ap') { apMes++; horasMes += hNom; }
+        else if (turno.tipo === 'permiso') { permisoMes++; horasMes += hNom; }
+        else if (turno.tipo === 'vacaciones') { vacMes += hNom; }
+        else if (turno.tipo === 'refuerzo_pago') { eurosMes += turno.euros || 0; }
+        else if (turno.tipo === 'refuerzo_horas') { horasRefMes += turno.horasGeneradas || 0; }
+    }
+
+    document.getElementById("totalNoches").textContent = nachesCount;
+    document.getElementById("totalMananas").textContent = mananasCount;
+    document.getElementById("totalTardes").textContent = tardesCount;
+    document.getElementById("totalLibres").textContent = libresCount;
+    document.getElementById("totalEurosMes").textContent = eurosMes.toFixed(2) + " €";
+    document.getElementById("totalHorasRefMes").textContent = "+" + horasRefMes + " h";
+    document.getElementById("totalApMes").textContent = apMes + " d";
+    document.getElementById("totalPermisosMes").textContent = permisoMes + " d";
+    document.getElementById("totalVacMes").textContent = vacMes + " h";
+    document.getElementById("totalHorasMes").textContent = horasMes + " h";
+}
+
+function calcularResumenAnual() {
+    const anio = mesActual.getFullYear();
+    document.getElementById("anioAnual").textContent = anio;
+    const datosAnio = calcularDatosAnualesTotales(anio);
+
+    document.getElementById("vacTotalAnual").textContent = datosAnio.bolsaVacacionesTotal + " h";
+    document.getElementById("vacUsadasAnual").textContent = datosAnio.vacUsadas + " h";
+    
+    const vacRestantes = datosAnio.bolsaVacacionesTotal - datosAnio.vacUsadas;
+    const elemVacRest = document.getElementById("vacRestantesAnual");
+    elemVacRest.textContent = vacRestantes + " h";
+    elemVacRest.style.color = vacRestantes >= 0 ? "var(--vacaciones)" : "var(--tarde)";
+
+    document.getElementById("apAnualResumen").textContent = `${datosAnio.apUsados} / ${ajustes.maxAp} d`;
+    document.getElementById("permisosAnualResumen").textContent = `${datosAnio.permisosUsados} d`;
+    document.getElementById("totalEurosAnual").textContent = datosAnio.totalEurosAnual.toFixed(2) + " €";
+    document.getElementById("totalHorasDeberAnual").textContent = datosAnio.totalHorasDeberAnual + " h";
+
+    const diferenciaConvenio = datosAnio.horasRealesTrabajo - Number(ajustes.convenio);
+    const difTxt = (diferenciaConvenio >= 0 ? "+" : "") + diferenciaConvenio + " h";
+    const elemBal = document.getElementById("balanceConvenioAnual");
+    elemBal.textContent = `${datosAnio.horasRealesTrabajo} h (${difTxt})`;
+    elemBal.style.color = diferenciaConvenio >= 0 ? "var(--libre)" : "var(--tarde)";
+
+    const tbody = document.getElementById("cuerpoTablaAnual");
+    tbody.innerHTML = "";
+
+    for (let m = 0; m < 12; m++) {
+        const ultDia = new Date(anio, m + 1, 0).getDate();
+        let nC = 0, mC = 0, tC = 0, lC = 0, vacH = 0, apD = 0, permD = 0, eurM = 0, horRefM = 0, hMes = 0;
+
+        for (let d = 1; d <= ultDia; d++) {
+            const fecha = new Date(anio, m, d);
+            const turno = obtenerTurnoFinal(fecha);
+            const hNom = getHorasNominalesDia(fecha);
+
+            if (turno.tipo === 'noche') { nC++; hMes += hNom; }
+            else if (turno.tipo === 'manana') { mC++; hMes += hNom; }
+            else if (turno.tipo === 'tarde') { tC++; hMes += hNom; }
+            else if (turno.tipo === 'libre') { lC++; }
+            else if (turno.tipo === 'vacaciones') { vacH += hNom; }
+            else if (turno.tipo === 'ap') { apD++; hMes += hNom; }
+            else if (turno.tipo === 'permiso') { permD++; hMes += hNom; }
+            else if (turno.tipo === 'refuerzo_pago') { eurM += turno.euros || 0; }
+            else if (turno.tipo === 'refuerzo_horas') { horRefM += turno.horasGeneradas || 0; }
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td style="text-transform:capitalize; font-weight:700;">${nombresMeses[m]}</td>
+            <td>${nC}</td><td>${mC}</td><td>${tC}</td><td>${lC}</td>
+            <td>${vacH}h</td><td>${apD}</td><td>${permD}</td>
+            <td style="color:var(--refuerzo-pago); font-weight:700;">${eurM.toFixed(0)}€</td>
+            <td style="color:var(--refuerzo-horas); font-weight:700;">+${horRefM}h</td>
+            <td><strong>${hMes}h</strong></td>
+        `;
+        tbody.appendChild(tr);
+    }
+}
+
+/* FUNCIONALIDADES INTERACTIVAS PARA REFUERZO DE DÍA LIBRE */
+function seleccionarTipoRefuerzo(tipo) {
+    tipoRefuerzoSeleccionado = tipo;
+    
+    document.getElementById("segNinguno").classList.toggle("activo", tipo === 'ninguno');
+    document.getElementById("segPago").classList.toggle("activo", tipo === 'pago');
+    document.getElementById("segHoras").classList.toggle("activo", tipo === 'horas');
+
+    document.getElementById("camposPago").style.display = (tipo === 'pago') ? 'block' : 'none';
+    document.getElementById("camposHoras").style.display = (tipo === 'horas') ? 'block' : 'none';
+    document.getElementById("btnAplicarRefuerzo").style.display = (tipo !== 'ninguno') ? 'block' : 'none';
+}
+
+function seleccionarTarifa(valor) {
+    tarifaSeleccionada = valor;
+    document.querySelectorAll('#camposPago .chip-item').forEach(chip => chip.classList.remove('activo'));
+    const chipActivo = document.getElementById(`tarifa-${valor}`);
+    if (chipActivo) chipActivo.classList.add('activo');
+}
+
+function seleccionarIndice(valor) {
+    indiceSeleccionado = valor;
+    document.querySelectorAll('#camposHoras .chip-item').forEach(chip => chip.classList.remove('activo'));
+    const chipActivo = document.getElementById(`indice-${valor}`);
+    if (chipActivo) chipActivo.classList.add('activo');
+}
+
+function modificarHorasInput(inputId, delta) {
+    const el = document.getElementById(inputId);
+    let val = parseFloat(el.value) + delta;
+    if (val < 1) val = 1;
+    if (val > 24) val = 24;
+    el.value = val;
+    
+    if (inputId === 'inputHorasPago') {
+        document.getElementById('valHorasPago').textContent = `${val} h`;
+    } else if (inputId === 'inputHorasReal') {
+        document.getElementById('valHorasReal').textContent = `${val} h`;
+    }
+}
+
+function exportarGoogleCalendar() {
+    const anio = mesActual.getFullYear();
+    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Calendario Turnos//ES\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n";
+
+    const inicio = new Date(anio, 0, 1);
+    const fin = new Date(anio, 11, 31);
+    let curr = new Date(inicio);
+
+    while (curr <= fin) {
+        const turno = obtenerTurnoFinal(curr);
+        if (turno.trabaja || ['vacaciones', 'ap', 'permiso', 'refuerzo_pago'].includes(turno.tipo)) {
+            const y = curr.getFullYear();
+            const m = String(curr.getMonth() + 1).padStart(2, '0');
+            const d = String(curr.getDate()).padStart(2, '0');
+            const fechaStr = `${y}${m}${d}`;
+            
+            icsContent += "BEGIN:VEVENT\n";
+            icsContent += `DTSTART;VALUE=DATE:${fechaStr}\n`;
+            icsContent += `DTEND;VALUE=DATE:${fechaStr}\n`;
+            icsContent += `SUMMARY:Turno: ${turno.nombre} (G-${grupoUsuario})\n`;
+            icsContent += `DESCRIPTION:Cuadrante G-${grupoUsuario} - ${turno.nombre}\n`;
+            icsContent += "END:VEVENT\n";
+        }
+        curr.setDate(curr.getDate() + 1);
+    }
+
+    icsContent += "END:VCALENDAR";
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', `calendario_g${grupoUsuario}_${anio}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    alert("¡Archivo .ics generado! Ábrelo en tu dispositivo para agregar las fechas a tu calendario.");
+}
+
+function abrirModalEdicion(fecha, turnoActual) {
+    diaSeleccionadoKey = getFechaKey(fecha);
+    const nombreDia = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"][fecha.getDay()];
+    document.getElementById("modalTitulo").textContent = `${nombreDia} ${fecha.getDate()} ${nombresMeses[fecha.getMonth()]}`;
+    document.getElementById("modalSubtitulo").textContent = `Actual: ${turnoActual.nombre}`;
+    
+    // Resetear formulario de refuerzo
+    seleccionarTipoRefuerzo('ninguno');
+    seleccionarTarifa('31.53');
+    seleccionarIndice('1.50');
+    document.getElementById("inputHorasPago").value = 8;
+    document.getElementById("valHorasPago").textContent = "8 h";
+    document.getElementById("inputHorasReal").value = 8;
+    document.getElementById("valHorasReal").textContent = "8 h";
+
+    document.getElementById("modalEdicion").classList.add("activo");
+}
+
+function cerrarModal() {
+    document.getElementById("modalEdicion").classList.remove("activo");
+    diaSeleccionadoKey = null;
+}
+
+function guardarCambioTurno(nuevoTipo) {
+    if (!diaSeleccionadoKey) return;
+    const anio = Number(diaSeleccionadoKey.split('-')[0]);
+    const datosAnio = calcularDatosAnualesTotales(anio);
+
+    if (nuevoTipo === 'ap' && datosAnio.apUsados >= ajustes.maxAp) {
+        alert(`Límite máximo de AP alcanzado (${ajustes.maxAp} días).`);
+        return;
+    }
+
+    if (nuevoTipo === 'vacaciones') {
+        const [y, m, d] = diaSeleccionadoKey.split('-');
+        const hNomDia = getHorasNominalesDia(new Date(y, m - 1, d));
+        const modActual = modificaciones[diaSeleccionadoKey];
+        const horasYaGastadasHoy = (modActual && modActual.tipo === 'vacaciones') ? hNomDia : 0;
+        const vacDisponibles = datosAnio.bolsaVacacionesTotal - (datosAnio.vacUsadas - horasYaGastadasHoy);
+        
+        if (hNomDia > vacDisponibles) {
+            alert(`Vacaciones insuficientes. Disponibles: ${vacDisponibles}h (Este día requiere ${hNomDia}h).`);
+            return;
+        }
+    }
+
+    const nombresMap = { noche: "Noche", manana: "Mañana", tarde: "Tarde", libre: "Libre", vacaciones: "Vacac.", ap: "AP", permiso: "Permiso" };
+    const trabajaMap = { noche: true, manana: true, tarde: true, libre: false, vacaciones: true, ap: true, permiso: true };
+
+    modificaciones[diaSeleccionadoKey] = { tipo: nuevoTipo, nombre: nombresMap[nuevoTipo], trabaja: trabajaMap[nuevoTipo], modificado: true };
+    localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+    cerrarModal();
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+function guardarRefuerzoDia() {
+    if (!diaSeleccionadoKey) return;
+    if (tipoRefuerzoSeleccionado === 'ninguno') { alert("Selecciona un tipo de refuerzo."); return; }
+
+    let objMod = { modificado: true };
+    if (tipoRefuerzoSeleccionado === 'pago') {
+        const tarifa = parseFloat(tarifaSeleccionada);
+        const horas = parseFloat(document.getElementById("inputHorasPago").value);
+        objMod.tipo = 'refuerzo_pago'; 
+        objMod.nombre = `Ref. € (${horas}h)`; 
+        objMod.trabaja = true; 
+        objMod.euros = tarifa * horas;
+    } else if (tipoRefuerzoSeleccionado === 'horas') {
+        const indice = parseFloat(indiceSeleccionado);
+        const horasReal = parseFloat(document.getElementById("inputHorasReal").value);
+        objMod.tipo = 'refuerzo_horas'; 
+        objMod.nombre = `Ref. (+${Math.round(horasReal * indice)}h)`; 
+        objMod.trabaja = false; 
+        objMod.horasGeneradas = Math.round(horasReal * indice);
+    }
+
+    modificaciones[diaSeleccionadoKey] = objMod;
+    localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+    cerrarModal();
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+function restaurarTurnoOriginal() {
+    if (!diaSeleccionadoKey) return;
+    delete modificaciones[diaSeleccionadoKey];
+    localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+    cerrarModal();
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+function abrirAjustes() {
+    document.getElementById('selectGrupoAjuste').value = grupoUsuario || 3;
+    document.getElementById('inputConvenio').value = ajustes.convenio;
+    document.getElementById('inputMaxAp').value = ajustes.maxAp;
+    document.getElementById('inputHorasLab').value = ajustes.horasLab;
+    document.getElementById('inputHorasFinde').value = ajustes.horasFinde;
+    document.getElementById('modalAjustes').classList.add('activo');
+}
+
+function cerrarAjustes() { document.getElementById('modalAjustes').classList.remove('activo'); }
+
+function guardarAjustes() {
+    grupoUsuario = document.getElementById('selectGrupoAjuste').value;
+    localStorage.setItem('g_grupo', grupoUsuario);
+    ajustes.convenio = Number(document.getElementById('inputConvenio').value);
+    ajustes.maxAp = Number(document.getElementById('inputMaxAp').value);
+    ajustes.horasLab = Number(document.getElementById('inputHorasLab').value);
+    ajustes.horasFinde = Number(document.getElementById('inputHorasFinde').value);
+    localStorage.setItem('g_ajustes', JSON.stringify(ajustes));
+    cerrarAjustes();
+    actualizarSubtituloGrupo();
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+function cambiarPestana(pestana) {
+    if (pestana === 'mes') {
+        document.getElementById('vistaMensual').style.display = 'block';
+        document.getElementById('vistaAnual').style.display = 'none';
+        document.getElementById('tabMes').classList.add('activa');
+        document.getElementById('tabAnual').classList.remove('activa');
+    } else {
+        document.getElementById('vistaMensual').style.display = 'none';
+        document.getElementById('vistaAnual').style.display = 'block';
+        document.getElementById('tabMes').classList.remove('activa');
+        document.getElementById('tabAnual').classList.add('activa');
+        calcularResumenAnual();
+    }
+}
+
+function cambiarMes(cantidad) {
+    mesActual = new Date(mesActual.getFullYear(), mesActual.getMonth() + cantidad, 1);
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+function irAHoy() {
+    const hoy = new Date();
+    mesActual = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+function exportarDatos() {
+    const exportObj = { grupo: grupoUsuario, modificaciones, ajustes };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `calendario_g${grupoUsuario}_backup.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+function importarDatos(event) {
+    const fileReader = new FileReader();
+    fileReader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.grupo) { grupoUsuario = data.grupo; localStorage.setItem('g_grupo', grupoUsuario); }
+            if (data.modificaciones) modificaciones = data.modificaciones;
+            if (data.ajustes) ajustes = data.ajustes;
+            localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+            localStorage.setItem('g_ajustes', JSON.stringify(ajustes));
+            actualizarSubtituloGrupo();
+            dibujarCalendario();
+            calcularResumenAnual();
+            alert("¡Datos importados correctamente!");
+        } catch (err) { alert("Error al importar el archivo JSON."); }
+    };
+    fileReader.readAsText(event.target.files[0]);
+}
+
+if (grupoUsuario) { dibujarCalendario(); }
+</script>
+
+</body>
+</html>
