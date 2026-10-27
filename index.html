@@ -1000,10 +1000,8 @@
                     <small>Permisos Totales</small>
                     <strong id="permisosAnualResumen">0 d</strong>
                 </div>
-                <div class="stat-card">
-                    <small>Fines de Semana Libres</small>
-                    <strong id="fdsLibresAnual" style="color:var(--libre);">0 fds</strong>
-                </div>
+                
+                
                 <div class="stat-card">
                     <small>Horas Refuerzo (H)</small>
                     <strong id="totalHorasDeberAnual" style="color:var(--refuerzo-horas);">0 h</strong>
@@ -1016,10 +1014,11 @@
                     <small>Total Refuerzos (€)</small>
                     <strong id="totalEurosAnual" style="color:var(--refuerzo-pago);">0,00 €</strong>
                 </div>
-                <div class="stat-card" style="grid-column: span 2;">
+                <div class="stat-card">
                     <small>Balance Convenio</small>
                     <strong id="balanceConvenioAnual">0 h</strong>
                 </div>
+                
             </div>
 
             <div class="table-wrapper">
@@ -1084,12 +1083,13 @@
         <div class="modal-tabs">
             <button class="modal-tab-btn active" id="tabModalTurno" onclick="cambiarModalTab('turno')">🛠️ Ausencia</button>
             <button class="modal-tab-btn" id="tabModalRefuerzo" onclick="cambiarModalTab('refuerzo')">⚡ Refuerzo</button>
-            <button class="modal-tab-btn" id="tabModalPermuta" onclick="cambiarModalTab('permuta')">🔄 Permuta</button>
+            <button class="modal-tab-btn" id="tabModalPermuta" onclick="cambiarModalTab('permuta')">⇄ Permuta</button>
             <button class="modal-tab-btn" id="tabModalNota" onclick="cambiarModalTab('nota')">📝 Nota</button>
         </div>
 
         <!-- PESTAÑA TURNO / AUSENCIA -->
         <div id="contenidoModalTurno">
+            <div id="avisoPermutaAusencia" style="display:none; background:var(--refuerzo-pago-bg); border:1px solid var(--refuerzo-pago); color:var(--refuerzo-pago); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; margin-bottom:10px; line-height:1.4;"></div>
             <div class="option-grid" id="opcionesEdicionContainer">
                 <div class="btn-option-card" style="background:var(--vacaciones-bg); color:var(--vacaciones); border-color:var(--vacaciones);" onclick="guardarCambioTurno('vacaciones')">
                     <span style="font-size:16px;">🌴</span>
@@ -1227,7 +1227,7 @@
 
                 <button class="btn-primary" style="background: var(--manana); margin-top:6px;" onclick="guardarPermutaDia()">Guardar Permuta</button>
             </div>
-            <button class="btn-secondary" onclick="restaurarTurnoOriginal()">Quitar Permuta</button>
+            <button class="btn-secondary" onclick="restaurarTurnoOriginal(true)">Quitar Permuta</button>
         </div>
 
         <!-- PESTAÑA NOTA -->
@@ -1801,7 +1801,7 @@ function dibujarCalendario() {
             const turnoComp = obtenerTurnoGrupoParaFecha(fecha, grupoComparacion);
             const compBadge = document.createElement("div");
             compBadge.className = "compare-badge";
-            compBadge.textContent = `G${grupoComparacion}: ${turnoComp.nombre.substring(0,3)}`;
+            compBadge.textContent = `G${grupoComparacion}: ${turnoComp.nombre.substring(0,1)}`;
             cell.appendChild(compBadge);
         }
 
@@ -1858,7 +1858,7 @@ function calcularResumenAnual() {
 
     document.getElementById("apAnualResumen").textContent = `${datosAnio.apUsados} / ${ajustes.maxAp} d`;
     document.getElementById("permisosAnualResumen").textContent = `${datosAnio.permisosUsados} d`;
-    document.getElementById("fdsLibresAnual").textContent = `${datosAnio.fdsLibres} fds`;
+    
     document.getElementById("totalEurosAnual").textContent = `${datosAnio.totalEurosAnual.toFixed(2)} €`;
     document.getElementById("totalHorasDeberAnual").textContent = `${datosAnio.totalHorasDeberAnual} h`;
 
@@ -2141,12 +2141,15 @@ function abrirModalEdicion(fecha, turnoActual) {
 
     document.getElementById("inputNotaDia").value = notas[diaSeleccionadoKey] || "";
 
-    const esLibreOGeneralLibre = (turnoActual.tipo === 'libre');
+    // Los días libres Y los que YA tienen un refuerzo guardado
+    // deben abrir directamente la pestaña "Refuerzo" (nunca Ausencias).
+    const tiposParaRefuerzo = ['libre', 'refuerzo_pago', 'refuerzo_horas'];
+    const esDiaConRefuerzo = tiposParaRefuerzo.includes(turnoActual.tipo);
 
-    document.getElementById("tabModalTurno").style.display = esLibreOGeneralLibre ? "none" : "block";
-    document.getElementById("tabModalRefuerzo").style.display = esLibreOGeneralLibre ? "block" : "none";
+    document.getElementById("tabModalTurno").style.display = esDiaConRefuerzo ? "none" : "block";
+    document.getElementById("tabModalRefuerzo").style.display = esDiaConRefuerzo ? "block" : "none";
 
-    if (esLibreOGeneralLibre) {
+    if (esDiaConRefuerzo) {
         cambiarModalTab('refuerzo');
     } else {
         cambiarModalTab('turno');
@@ -2177,6 +2180,18 @@ function abrirModalEdicion(fecha, turnoActual) {
     document.getElementById("valHorasPago").textContent = "8 h";
     document.getElementById("inputHorasReal").value = 8;
     document.getElementById("valHorasReal").textContent = "8 h";
+
+    // Aviso visual si el día tiene una permuta asociada
+    const avisoPerm = document.getElementById("avisoPermutaAusencia");
+    if (turnoActual.esPermuta) {
+        avisoPerm.style.display = 'block';
+        const sufijo = turnoActual.ausenciaSobrePermuta
+            ? ` Aunque cambies o quites la ausencia, la deuda de la permuta se conservará.`
+            : '';
+        avisoPerm.innerHTML = `⚠️ Este día tiene una permuta asociada (Nº ${turnoActual.numProf || '?'}, G-${turnoActual.grupoOrigen || '?'}).${sufijo}`;
+    } else {
+        avisoPerm.style.display = 'none';
+    }
 
     document.getElementById("modalEdicion").classList.add("active");
 }
@@ -2260,7 +2275,10 @@ function guardarCambioTurno(nuevoTipo) {
     const nombresMap = { noche: "Noche", manana: "Mañana", tarde: "Tarde", libre: "Libre", vacaciones: "Vacaciones", ap: "Asuntos Propios", permiso: "Permiso", refuerzo_usado: "Refuerzo Usado" };
     const trabajaMap = { noche: true, manana: true, tarde: true, libre: false, vacaciones: true, ap: true, permiso: true, refuerzo_usado: true };
 
-    modificaciones[diaSeleccionadoKey] = {
+    const modActual = modificaciones[diaSeleccionadoKey];
+    const teniaPermuta = modActual && modActual.esPermuta;
+
+    const nuevoMod = {
         tipo: nuevoTipo,
         nombre: nombresMap[nuevoTipo],
         trabaja: trabajaMap[nuevoTipo],
@@ -2268,6 +2286,19 @@ function guardarCambioTurno(nuevoTipo) {
         esPermuta: false
     };
 
+    // 🔑 CONSERVAR la deuda de la permuta si existía
+    if (teniaPermuta) {
+        nuevoMod.esPermuta = true;
+        nuevoMod.numProf = modActual.numProf;
+        nuevoMod.grupoOrigen = modActual.grupoOrigen;
+        nuevoMod.estadoDeuda = modActual.estadoDeuda;
+        nuevoMod.ambito = modActual.ambito;
+        nuevoMod.fechaInicioSemana = modActual.fechaInicioSemana;
+        nuevoMod.tipoTurnoPermuta = modActual.tipoTurnoPermuta || modActual.tipo;
+        nuevoMod.ausenciaSobrePermuta = true;
+    }
+
+    modificaciones[diaSeleccionadoKey] = nuevoMod;
     localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
     cerrarModal();
     dibujarCalendario();
@@ -2374,29 +2405,76 @@ function guardarPermutaDia() {
     calcularResumenAnual();
 }
 
-function restaurarTurnoOriginal() {
-    if (!diaSeleccionadoKey) return;
-    const turnoActual = obtenerTurnoFinal(new Date(diaSeleccionadoKey));
+function persistirYRefrescarPermutas() {
+    localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+    cerrarModal();
+    dibujarCalendario();
+    calcularResumenAnual();
+    if (document.getElementById('modalPanelPermutas').classList.contains('active')) {
+        renderizarListaPermutas();
+    }
+}
 
-    if (turnoActual.ambito === 'semana' && turnoActual.fechaInicioSemana) {
-        const partes = turnoActual.fechaInicioSemana.split('-');
+function restaurarTurnoOriginal(forzarEliminarPermuta = false) {
+    if (!diaSeleccionadoKey) return;
+    const modActual = modificaciones[diaSeleccionadoKey];
+    if (!modActual) { cerrarModal(); return; }
+
+    const esPermuta = modActual.esPermuta;
+    const ausenciaSobrePermuta = modActual.ausenciaSobrePermuta;
+    const esSemana = modActual.ambito === 'semana' && modActual.fechaInicioSemana;
+
+    // CASO 1: quitar SOLO la ausencia, mantener la permuta (botón "Restaurar" del modal)
+    if (esPermuta && ausenciaSobrePermuta && modActual.tipoTurnoPermuta && !forzarEliminarPermuta) {
+        const tipoTurno = modActual.tipoTurnoPermuta;
+        const nombresMap = { noche: "Noche", manana: "Mañana", tarde: "Tarde", libre: "Libre" };
+        const trabajaMap = { noche: true, manana: true, tarde: true, libre: false };
+        modificaciones[diaSeleccionadoKey] = {
+            tipo: tipoTurno,
+            nombre: nombresMap[tipoTurno] || "Turno",
+            trabaja: trabajaMap[tipoTurno] !== false,
+            modificado: true,
+            esPermuta: true,
+            numProf: modActual.numProf,
+            grupoOrigen: modActual.grupoOrigen,
+            estadoDeuda: modActual.estadoDeuda,
+            ambito: modActual.ambito,
+            fechaInicioSemana: modActual.fechaInicioSemana
+        };
+        persistirYRefrescarPermutas();
+        return;
+    }
+
+    // CASO 2: eliminar permuta (día o semana). Si hay ausencia, se conserva.
+    if (esSemana) {
+        const partes = modActual.fechaInicioSemana.split('-');
         const lunes = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
         for (let i = 0; i < 7; i++) {
             const curr = new Date(lunes);
             curr.setDate(curr.getDate() + i);
             const keyCurr = getFechaKey(curr);
-            if (modificaciones[keyCurr] && modificaciones[keyCurr].esPermuta) {
-                delete modificaciones[keyCurr];
+            const m = modificaciones[keyCurr];
+            if (m && m.esPermuta) {
+                if (m.ausenciaSobrePermuta) {
+                    modificaciones[keyCurr] = {
+                        tipo: m.tipo, nombre: m.nombre, trabaja: m.trabaja,
+                        modificado: true, esPermuta: false
+                    };
+                } else {
+                    delete modificaciones[keyCurr];
+                }
             }
         }
+    } else if (esPermuta && ausenciaSobrePermuta) {
+        modificaciones[diaSeleccionadoKey] = {
+            tipo: modActual.tipo, nombre: modActual.nombre, trabaja: modActual.trabaja,
+            modificado: true, esPermuta: false
+        };
     } else {
         delete modificaciones[diaSeleccionadoKey];
     }
 
-    localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
-    cerrarModal();
-    dibujarCalendario();
-    calcularResumenAnual();
+    persistirYRefrescarPermutas();
 }
 
 /* PANEL GENERAL DE PERMUTAS CON ESTADÍSTICAS Y FILTROS */
@@ -2499,7 +2577,7 @@ function marcarSaldado(numProf) {
 
 function eliminarPermutaEntrada(key) {
     diaSeleccionadoKey = key;
-    restaurarTurnoOriginal();
+    restaurarTurnoOriginal(true);
     renderizarListaPermutas();
 }
 
