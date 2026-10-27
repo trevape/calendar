@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mi Calendario">
     <title>Mi Calendario de Trabajo</title>
     <style>
         :root {
@@ -36,6 +40,8 @@
             --refuerzo-pago-bg: #fef3c7;
             --refuerzo-horas: #2563eb;
             --refuerzo-horas-bg: #dbeafe;
+            --refuerzo-usado: #2563eb;
+            --refuerzo-usado-bg: #dbeafe;
 
             --radius-lg: 16px;
             --radius-md: 12px;
@@ -79,6 +85,8 @@
             --refuerzo-pago-bg: #451a03;
             --refuerzo-horas: #60a5fa;
             --refuerzo-horas-bg: #172554;
+            --refuerzo-usado: #60a5fa;
+            --refuerzo-usado-bg: #172554;
 
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
@@ -109,7 +117,6 @@
             gap: 12px;
         }
 
-        /* HEADER & TOP BAR */
         header {
             display: flex;
             flex-direction: column;
@@ -168,7 +175,6 @@
         .btn-action:active { transform: scale(0.96); }
         .btn-action:hover { border-color: var(--border-hover); }
 
-        /* MAIN CONTAINER */
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -177,7 +183,6 @@
             box-shadow: var(--shadow-md);
         }
 
-        /* TABS */
         .tab-group {
             display: flex;
             background: var(--surface-subtle);
@@ -206,12 +211,11 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* MONTH NAVIGATION */
         .nav-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .nav-header h2 {
@@ -237,6 +241,14 @@
         }
         .btn-icon:active { transform: scale(0.92); }
 
+        .sub-nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
         .btn-today {
             background: var(--surface-subtle);
             border: 1px solid var(--border);
@@ -246,13 +258,56 @@
             padding: 4px 12px;
             border-radius: 20px;
             cursor: pointer;
-            margin: 0 auto 12px auto;
-            display: block;
             transition: all 0.15s;
         }
         .btn-today:hover { color: var(--text); }
 
-        /* LEYENDA */
+        .compare-selector {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            outline: none;
+        }
+
+        /* BANNER DINÁMICO DE TURNO Y NOTAS */
+        #bannerAlertaTurno {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            box-shadow: var(--shadow-sm);
+        }
+        #bannerAlertaTurno .titulo-turno {
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #bannerAlertaTurno .frase-animo {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        #bannerAlertaTurno .recuerda-nota {
+            color: var(--primary);
+            font-weight: 800;
+            margin-top: 2px;
+            background: rgba(37, 99, 235, 0.08);
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
         .legend-grid {
             display: flex;
             flex-wrap: wrap;
@@ -276,8 +331,8 @@
         .legend-tag.permiso { background: var(--permiso-bg); color: var(--permiso); }
         .legend-tag.refuerzo-pago { background: var(--refuerzo-pago-bg); color: var(--refuerzo-pago); }
         .legend-tag.refuerzo-horas { background: var(--refuerzo-horas-bg); color: var(--refuerzo-horas); }
+        .legend-tag.refuerzo-usado { background: var(--refuerzo-usado-bg); color: var(--refuerzo-usado); }
 
-        /* CALENDAR GRID */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -305,15 +360,62 @@
             cursor: pointer;
             position: relative;
             transition: transform 0.1s;
+            overflow: hidden;
+            min-width: 0;
         }
         .day-cell:active { transform: scale(0.94); }
         .day-cell.empty { background: transparent; border: none; cursor: default; }
         .day-cell.empty:active { transform: none; }
 
+        .day-header-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 2px;
+        }
+
         .day-num {
             font-size: 12px;
             font-weight: 800;
+            line-height: 1;
         }
+
+        .permuta-indicator {
+            font-size: 10px;
+            background: rgba(0,0,0,0.08);
+            color: var(--text);
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        [data-theme="dark"] .permuta-indicator {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .day-cell.has-note::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            z-index: 2;
+        }
+
+        .extra-indicator {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 3px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.08);
+            color: inherit;
+            line-height: 1;
+        }
+        [data-theme="dark"] .extra-indicator { background: rgba(255,255,255,0.15); }
 
         .shift-badge {
             width: 100%;
@@ -327,7 +429,16 @@
             white-space: nowrap;
         }
 
-        /* Shift Variants */
+        .compare-badge {
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: var(--surface-subtle);
+            border-radius: 3px;
+            padding: 0 2px;
+            margin-top: 1px;
+        }
+
         .day-cell.noche { background: var(--noche-bg); border-color: rgba(79, 70, 229, 0.3); }
         .day-cell.noche .shift-badge { background: var(--noche); color: #fff; }
 
@@ -355,40 +466,14 @@
         .day-cell.refuerzo_horas { background: var(--refuerzo-horas-bg); border-color: var(--refuerzo-horas); }
         .day-cell.refuerzo_horas .shift-badge { background: var(--refuerzo-horas); color: #fff; }
 
+        .day-cell.refuerzo_usado { background: var(--refuerzo-usado-bg); border-color: var(--refuerzo-usado); }
+        .day-cell.refuerzo_usado .shift-badge { background: var(--refuerzo-usado); color: #fff; }
+
         .day-cell.is-today {
             outline: 2px solid var(--text);
             outline-offset: -2px;
         }
 
-        .day-cell.modified::after {
-            content: "";
-            position: absolute;
-            top: 3px;
-            right: 3px;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--refuerzo-pago);
-        }
-
-        .extra-indicator {
-            font-size: 8px;
-            font-weight: 800;
-            padding: 0 2px;
-            border-radius: 3px;
-            background: rgba(0,0,0,0.08);
-            color: inherit;
-        }
-        [data-theme="dark"] .extra-indicator { background: rgba(255,255,255,0.15); }
-
-        /* Estilo más sutil/light para las 12h de fin de semana */
-        .extra-indicator.light {
-            font-weight: 500;
-            opacity: 0.75;
-            background: transparent;
-        }
-
-        /* METRICS / SUMMARY CARDS */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -416,7 +501,6 @@
             color: var(--text);
         }
 
-        /* TABLE VIEW (ANNUAL) */
         .table-wrapper {
             overflow-x: auto;
             border-radius: var(--radius-md);
@@ -449,7 +533,7 @@
         tr:nth-child(even) { background: rgba(0,0,0,0.015); }
         [data-theme="dark"] tr:nth-child(even) { background: rgba(255,255,255,0.015); }
 
-        /* MODALS */
+        /* MODALS & TABS INTERNAS */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -518,9 +602,36 @@
             cursor: pointer;
         }
 
+        .modal-tabs {
+            display: flex;
+            background: var(--surface-subtle);
+            padding: 3px;
+            border-radius: var(--radius-md);
+            margin-bottom: 14px;
+            border: 1px solid var(--border);
+        }
+        .modal-tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 7px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: calc(var(--radius-md) - 3px);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+        .modal-tab-btn.active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: var(--shadow-sm);
+        }
+
         .option-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 8px;
             margin-bottom: 14px;
         }
@@ -543,7 +654,6 @@
         }
         .btn-option-card:active { transform: scale(0.96); }
 
-        /* REINFORCEMENT SECTION */
         .card-inner {
             background: var(--surface-subtle);
             border: 1px solid var(--border);
@@ -637,7 +747,7 @@
             margin-bottom: 4px;
             text-transform: uppercase;
         }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 8px 10px;
             border-radius: var(--radius-sm);
@@ -647,6 +757,11 @@
             font-size: 12px;
             font-weight: 700;
             outline: none;
+            font-family: var(--font);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
         }
 
         .btn-primary {
@@ -676,6 +791,49 @@
             margin-top: 6px;
         }
 
+        .permutas-list-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 260px;
+            overflow-y: auto;
+            margin-top: 8px;
+        }
+        .permuta-card-item {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .permuta-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 800;
+        }
+
+        .search-results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 8px;
+        }
+        .search-result-item {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .search-result-item strong { display: block; font-size: 10px; color: var(--primary); text-transform: uppercase; }
+
         footer {
             text-align: center;
             color: var(--text-muted);
@@ -700,29 +858,51 @@
         </div>
         <div class="action-bar">
             <button class="btn-action" onclick="abrirAjustes()">⚙️ Ajustes</button>
-            <button class="btn-action" onclick="exportarGoogleCalendar()">📆 Exportar a calendario</button>
-            <button class="btn-action" onclick="exportarDatos()">💾 Copia de seguridad</button>
+            <button class="btn-action" onclick="abrirPanelPermutas()">⇄ Permutas</button>
+            <button class="btn-action" onclick="abrirBuscadorNotas()">🔍 Notas</button>
+            <button class="btn-action" onclick="exportarGoogleCalendar()">📆 Exportar</button>
+            <button class="btn-action" onclick="exportarDatos()">💾 Backup</button>
             <button class="btn-action" onclick="document.getElementById('fileInput').click()">📥 Restaurar</button>
             <input type="file" id="fileInput" style="display:none" onchange="importarDatos(event)">
         </div>
     </header>
 
     <main class="card">
-        <!-- PESTAÑAS -->
         <div class="tab-group">
             <button class="btn-tab active" id="tabMes" onclick="cambiarPestana('mes')">📅 Calendario</button>
             <button class="btn-tab" id="tabAnual" onclick="cambiarPestana('anual')">📊 Resumen Anual</button>
         </div>
-
-        <!-- VISTA MENSUAL -->
+   
         <div id="vistaMensual">
+          <!-- BANNER DINÁMICO DE TURNO Y NOTAS INTELIGENTES -->
+            <div id="bannerAlertaTurno">
+                <div class="titulo-turno" id="bannerTituloTurno">📅 Turno de hoy: ---</div>
+                <div class="frase-animo" id="bannerFraseAnimo">¡A por el día con energía!</div>
+                <div class="recuerda-nota" id="bannerRecuerdaHoy" style="display:none;"></div>
+                <div class="recuerda-nota" id="bannerRecuerdaProxima" style="display:none;"></div>
+            </div>
             <div class="nav-header">
                 <button class="btn-icon" onclick="cambiarMes(-1)">❮</button>
                 <h2 id="tituloMes">---</h2>
                 <button class="btn-icon" onclick="cambiarMes(1)">❯</button>
             </div>
 
-            <button class="btn-today" onclick="irAHoy()">Ir al mes actual</button>
+       
+
+            <div class="sub-nav-row">
+                <button class="btn-today" onclick="irAHoy()">Ir al mes actual</button>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span style="font-size: 10px; font-weight: 800; color: var(--text-muted);">Ver grupo:</span>
+                    <select id="selectGrupoComparar" class="compare-selector" onchange="cambiarGrupoComparacion(this.value)">
+                        <option value="">Ninguno</option>
+                        <option value="1">G-1</option>
+                        <option value="2">G-2</option>
+                        <option value="3">G-3</option>
+                        <option value="4">G-4</option>
+                        <option value="5">G-5</option>
+                    </select>
+                </div>
+            </div>
 
             <div class="legend-grid">
                 <span class="legend-tag noche">Noche</span>
@@ -734,6 +914,7 @@
                 <span class="legend-tag permiso">Permiso</span>
                 <span class="legend-tag refuerzo-pago">Ref (€)</span>
                 <span class="legend-tag refuerzo-horas">Ref (H)</span>
+                <span class="legend-tag refuerzo-usado">Ref. Usado</span>
             </div>
 
             <div class="calendar-grid">
@@ -774,6 +955,10 @@
                     <strong id="totalHorasRefMes" style="color:var(--refuerzo-horas);">+0 h</strong>
                 </div>
                 <div class="stat-card">
+                    <small>Ref. Usado (H)</small>
+                    <strong id="totalRefUsadoMes" style="color:var(--refuerzo-horas);">0 h</strong>
+                </div>
+                <div class="stat-card">
                     <small>AP Usados</small>
                     <strong id="totalApMes">0 d</strong>
                 </div>
@@ -785,14 +970,13 @@
                     <small>Vacaciones</small>
                     <strong id="totalVacMes">0 h</strong>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="grid-column: span 2;">
                     <small>Horas Totales</small>
                     <strong id="totalHorasMes">0 h</strong>
                 </div>
             </div>
         </div>
 
-        <!-- VISTA ANUAL -->
         <div id="vistaAnual" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h3 style="font-size:15px; font-weight:800;">Balance Anual — <span id="anioAnual">2026</span></h3>
@@ -803,10 +987,7 @@
                     <small>Bolsa Vacaciones</small>
                     <strong id="vacTotalAnual">0 h</strong>
                 </div>
-                <div class="stat-card">
-                    <small>Vacaciones Usadas</small>
-                    <strong id="vacUsadasAnual">0 h</strong>
-                </div>
+               
                 <div class="stat-card">
                     <small>Vac. Restantes</small>
                     <strong id="vacRestantesAnual" style="color:var(--vacaciones);">0 h</strong>
@@ -820,14 +1001,22 @@
                     <strong id="permisosAnualResumen">0 d</strong>
                 </div>
                 <div class="stat-card">
-                    <small>Total Refuerzos (€)</small>
-                    <strong id="totalEurosAnual" style="color:var(--refuerzo-pago);">0,00 €</strong>
+                    <small>Fines de Semana Libres</small>
+                    <strong id="fdsLibresAnual" style="color:var(--libre);">0 fds</strong>
                 </div>
                 <div class="stat-card">
                     <small>Horas Refuerzo (H)</small>
                     <strong id="totalHorasDeberAnual" style="color:var(--refuerzo-horas);">0 h</strong>
                 </div>
+                 <div class="stat-card">
+                    <small>Ref. Restantes (H)</small>
+                    <strong id="refRestantesAnual" style="color:var(--refuerzo-horas);">0 h</strong>
+                </div>
                 <div class="stat-card">
+                    <small>Total Refuerzos (€)</small>
+                    <strong id="totalEurosAnual" style="color:var(--refuerzo-pago);">0,00 €</strong>
+                </div>
+                <div class="stat-card" style="grid-column: span 2;">
                     <small>Balance Convenio</small>
                     <strong id="balanceConvenioAnual">0 h</strong>
                 </div>
@@ -892,91 +1081,210 @@
             <button class="btn-close" onclick="cerrarModal()">✕</button>
         </div>
 
-        <!-- OPCIONES AUSENCIA -->
-        <div class="option-grid" id="opcionesEdicionContainer">
-            <div class="btn-option-card" style="background:var(--vacaciones-bg); color:var(--vacaciones); border-color:var(--vacaciones);" onclick="guardarCambioTurno('vacaciones')">
-                <span style="font-size:16px;">🌴</span>
-                <span>Vacaciones</span>
-            </div>
-            <div class="btn-option-card" style="background:var(--ap-bg); color:var(--ap); border-color:var(--ap);" onclick="guardarCambioTurno('ap')">
-                <span style="font-size:16px;">📑</span>
-                <span>AP</span>
-            </div>
-            <div class="btn-option-card" style="background:var(--permiso-bg); color:var(--permiso); border-color:var(--permiso);" onclick="guardarCambioTurno('permiso')">
-                <span style="font-size:16px;">🏥</span>
-                <span>Permiso</span>
-            </div>
+        <div class="modal-tabs">
+            <button class="modal-tab-btn active" id="tabModalTurno" onclick="cambiarModalTab('turno')">🛠️ Ausencia</button>
+            <button class="modal-tab-btn" id="tabModalRefuerzo" onclick="cambiarModalTab('refuerzo')">⚡ Refuerzo</button>
+            <button class="modal-tab-btn" id="tabModalPermuta" onclick="cambiarModalTab('permuta')">🔄 Permuta</button>
+            <button class="modal-tab-btn" id="tabModalNota" onclick="cambiarModalTab('nota')">📝 Nota</button>
         </div>
 
-        <!-- SECCIÓN DE REFUERZO (EN DÍAS LIBRES) -->
-        <div class="card-inner" id="seccionRefuerzoCard">
-            <h4>Refuerzo en Día Libre</h4>
+        <!-- PESTAÑA TURNO / AUSENCIA -->
+        <div id="contenidoModalTurno">
+            <div class="option-grid" id="opcionesEdicionContainer">
+                <div class="btn-option-card" style="background:var(--vacaciones-bg); color:var(--vacaciones); border-color:var(--vacaciones);" onclick="guardarCambioTurno('vacaciones')">
+                    <span style="font-size:16px;">🌴</span>
+                    <span>Vacaciones</span>
+                </div>
+                <div class="btn-option-card" style="background:var(--ap-bg); color:var(--ap); border-color:var(--ap);" onclick="guardarCambioTurno('ap')">
+                    <span style="font-size:16px;">📑</span>
+                    <span>AP</span>
+                </div>
+                <div class="btn-option-card" style="background:var(--permiso-bg); color:var(--permiso); border-color:var(--permiso);" onclick="guardarCambioTurno('permiso')">
+                    <span style="font-size:16px;">🏥</span>
+                    <span>Permiso</span>
+                </div>
+                <div class="btn-option-card" style="background:var(--refuerzo-horas-bg); color:var(--refuerzo-horas); border-color:var(--refuerzo-horas);" onclick="guardarCambioTurno('refuerzo_usado')">
+                    <span style="font-size:16px;">⚡</span>
+                    <span>Usar Ref. (H)</span>
+                </div>
+            </div>
+            <button class="btn-secondary" onclick="restaurarTurnoOriginal()">Restaurar Estado Original del Turno</button>
+        </div>
 
+        <!-- PESTAÑA REFUERZO -->
+        <div id="contenidoModalRefuerzo" style="display: none;">
+            <div class="card-inner" style="margin-top:0;">
+                <h4>Refuerzo en Día Libre</h4>
+
+                <div class="form-group">
+                    <label>Categoría Profesional:</label>
+                    <select id="selectCategoriaModal" onchange="cambiarCategoriaModal(this.value)">
+                        <option value="agente">Agente</option>
+                        <option value="agente1">Agente 1º</option>
+                        <option value="suboficial">Suboficial</option>
+                        <option value="oficial">Oficial</option>
+                    </select>
+                </div>
+
+                <div class="segmented-control">
+                    <div class="segmented-item active" id="segPago" onclick="seleccionarTipoRefuerzo('pago')">Refuerzo (€)</div>
+                    <div class="segmented-item" id="segHoras" onclick="seleccionarTipoRefuerzo('horas')">Refuerzo (H)</div>
+                </div>
+
+                <!-- BLOQUE PAGO (€) -->
+                <div id="camposPago">
+                    <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Tarifa Aplicable:</label>
+                    <div class="chips-grid" id="containerChipsTarifas"></div>
+
+                    <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Horas Trabajadas:</label>
+                    <div class="stepper">
+                        <button class="btn-stepper" onclick="modificarHorasInput('inputHorasPago', -0.5)">-</button>
+                        <span class="stepper-val" id="valHorasPago">8 h</span>
+                        <button class="btn-stepper" onclick="modificarHorasInput('inputHorasPago', 0.5)">+</button>
+                    </div>
+                    <input type="hidden" id="inputHorasPago" value="8">
+                </div>
+
+                <!-- BLOQUE HORAS BANKED -->
+                <div id="camposHoras" style="display:none;">
+                    <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Índice Corrector por Hora:</label>
+                    <div class="chips-grid">
+                        <div class="chip active" id="indice-1.50" onclick="seleccionarIndice('1.50')">
+                            <span class="chip-title">L-V Diurna</span>
+                            <span class="chip-sub">x 1,50 (90m)</span>
+                        </div>
+                        <div class="chip" id="indice-1.75" onclick="seleccionarIndice('1.75')">
+                            <span class="chip-title">L-V Noct.</span>
+                            <span class="chip-sub">x 1,75 (105m)</span>
+                        </div>
+                        <div class="chip" id="indice-2.00" onclick="seleccionarIndice('2.00')">
+                            <span class="chip-title">Festiva</span>
+                            <span class="chip-sub">x 2,00 (120m)</span>
+                        </div>
+                        <div class="chip" id="indice-2.15" onclick="seleccionarIndice('2.15')">
+                            <span class="chip-title">Fest. Noct.</span>
+                            <span class="chip-sub">x 2,15 (135m)</span>
+                        </div>
+                    </div>
+
+                    <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Horas Realizadas:</label>
+                    <div class="stepper">
+                        <button class="btn-stepper" onclick="modificarHorasInput('inputHorasReal', -0.5)">-</button>
+                        <span class="stepper-val" id="valHorasReal">8 h</span>
+                        <button class="btn-stepper" onclick="modificarHorasInput('inputHorasReal', 0.5)">+</button>
+                    </div>
+                    <input type="hidden" id="inputHorasReal" value="8">
+                </div>
+
+                <button class="btn-primary" style="margin-top:8px; background:var(--manana);" onclick="guardarRefuerzoDia()">Guardar Refuerzo</button>
+            </div>
+            <button class="btn-secondary" onclick="restaurarTurnoOriginal()">Quitar Refuerzo</button>
+        </div>
+
+        <!-- PESTAÑA PERMUTA -->
+        <div id="contenidoModalPermuta" style="display: none;">
+            <div class="card-inner" style="margin-top:0;">
+                <h4>Cambio de Turno / Permuta con Compañero</h4>
+                
+                <div class="form-group">
+                    <label>Ámbito de la Permuta:</label>
+                    <select id="permutaAmbito" onchange="toggleSelectorAmbito(this.value)">
+                        <option value="dia">Un día</option>
+                        <option value="semana">Semana entera</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Nº Profesional del Compañero:</label>
+                    <input type="text" id="permutaNumProf" placeholder="Ej: 4829" oninput="verificarDeudaPendiente(this.value)">
+                </div>
+
+                <div id="alertaDeudaPendiente" style="display:none; background: var(--refuerzo-pago-bg); border: 1px solid var(--refuerzo-pago); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 10px; font-size: 11px; font-weight: 700; color: var(--refuerzo-pago);">
+                    ⚠️ Este compañero tiene permutas pendientes del mismo tipo. Selecciona cuáles deseas saldar con este nuevo cambio:
+                    <div id="listaDeudasPendientesCheckbox" style="display: flex; flex-direction: column; gap: 4px; margin: 8px 0;"></div>
+                    <button class="btn-secondary" style="margin-top:4px; background:var(--surface); color:var(--text);" onclick="guardarPermutaYSaldarSeleccionadas()">Guardar permuta y saldar seleccionadas</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Grupo del Compañero <span id="labelTurnoAutomatico" style="color:var(--primary); font-weight:800;">(Turno: Mañana)</span>:</label>
+                    <select id="permutaGrupoOrigen" onchange="actualizarTurnoAutomaticoPreview()">
+                        <option value="1">Grupo G-1</option>
+                        <option value="2">Grupo G-2</option>
+                        <option value="3">Grupo G-3</option>
+                        <option value="4">Grupo G-4</option>
+                        <option value="5">Grupo G-5</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Estado de la Deuda:</label>
+                    <select id="permutaEstado">
+                        <option value="me_debe">Me debe</option>
+                        <option value="le_debe">Le debo</option>
+                        <option value="saldado">Saldado</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" style="background: var(--manana); margin-top:6px;" onclick="guardarPermutaDia()">Guardar Permuta</button>
+            </div>
+            <button class="btn-secondary" onclick="restaurarTurnoOriginal()">Quitar Permuta</button>
+        </div>
+
+        <!-- PESTAÑA NOTA -->
+        <div id="contenidoModalNota" style="display: none;">
             <div class="form-group">
-                <label>Categoría Profesional:</label>
-                <select id="selectCategoriaModal" onchange="cambiarCategoriaModal(this.value)">
-                    <option value="agente">Agente</option>
-                    <option value="agente1">Agente 1º</option>
-                    <option value="suboficial">Suboficial</option>
-                    <option value="oficial">Oficial</option>
-                </select>
+                <label>Escribe o edita tu nota:</label>
+                <textarea id="inputNotaDia" placeholder="Ej: Médico a las 10:00..."></textarea>
             </div>
+            <button class="btn-primary" style="background: var(--primary);" onclick="guardarNotaDia()">Guardar Nota</button>
+            <button class="btn-secondary" style="color:var(--tarde); border-color:var(--tarde);" onclick="borrarNotaDia()">Eliminar Nota</button>
+        </div>
+    </div>
+</div>
 
-            <div class="segmented-control">
-                <div class="segmented-item active" id="segNinguno" onclick="restaurarTurnoOriginal()">Ninguno</div>
-                <div class="segmented-item" id="segPago" onclick="seleccionarTipoRefuerzo('pago')">Ref. (€)</div>
-                <div class="segmented-item" id="segHoras" onclick="seleccionarTipoRefuerzo('horas')">Ref. (H)</div>
+<!-- MODAL PANEL GENERAL DE PERMUTAS -->
+<div class="modal-overlay" id="modalPanelPermutas">
+    <div class="modal-body">
+        <div class="drag-bar"></div>
+        <div class="modal-header">
+            <div>
+                <h3>Gestión de Permutas</h3>
+                <p>Listado y estadísticas de tus cambios:</p>
             </div>
-
-            <!-- BLOQUE PAGO (€) -->
-            <div id="camposPago" style="display:none;">
-                <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Tarifa Aplicable:</label>
-                <div class="chips-grid" id="containerChipsTarifas"></div>
-
-                <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Horas Trabajadas:</label>
-                <div class="stepper">
-                    <button class="btn-stepper" onclick="modificarHorasInput('inputHorasPago', -0.5)">-</button>
-                    <span class="stepper-val" id="valHorasPago">8 h</span>
-                    <button class="btn-stepper" onclick="modificarHorasInput('inputHorasPago', 0.5)">+</button>
-                </div>
-                <input type="hidden" id="inputHorasPago" value="8">
-            </div>
-
-            <!-- BLOQUE HORAS BANKED -->
-            <div id="camposHoras" style="display:none;">
-                <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Índice Corrector por Hora:</label>
-                <div class="chips-grid">
-                    <div class="chip active" id="indice-1.50" onclick="seleccionarIndice('1.50')">
-                        <span class="chip-title">L-V Diurna</span>
-                        <span class="chip-sub">x 1,50 (90m)</span>
-                    </div>
-                    <div class="chip" id="indice-1.75" onclick="seleccionarIndice('1.75')">
-                        <span class="chip-title">L-V Noct.</span>
-                        <span class="chip-sub">x 1,75 (105m)</span>
-                    </div>
-                    <div class="chip" id="indice-2.00" onclick="seleccionarIndice('2.00')">
-                        <span class="chip-title">Festiva</span>
-                        <span class="chip-sub">x 2,00 (120m)</span>
-                    </div>
-                    <div class="chip" id="indice-2.15" onclick="seleccionarIndice('2.15')">
-                        <span class="chip-title">Fest. Noct.</span>
-                        <span class="chip-sub">x 2,15 (135m)</span>
-                    </div>
-                </div>
-
-                <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:4px; text-transform:uppercase;">Horas Realizadas:</label>
-                <div class="stepper">
-                    <button class="btn-stepper" onclick="modificarHorasInput('inputHorasReal', -0.5)">-</button>
-                    <span class="stepper-val" id="valHorasReal">8 h</span>
-                    <button class="btn-stepper" onclick="modificarHorasInput('inputHorasReal', 0.5)">+</button>
-                </div>
-                <input type="hidden" id="inputHorasReal" value="8">
-            </div>
-
-            <button id="btnAplicarRefuerzo" class="btn-primary" style="margin-top:6px; display:none; background:var(--manana);" onclick="guardarRefuerzoDia()">Aplicar Refuerzo</button>
+            <button class="btn-close" onclick="cerrarPanelPermutas()">✕</button>
         </div>
 
-        <button class="btn-secondary" onclick="restaurarTurnoOriginal()">Restaurar Estado Original</button>
+        <div id="estadisticasPermutas" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:10px;"></div>
+
+        <div class="tab-group" style="margin-bottom: 8px;">
+            <button class="btn-tab active" id="filtroPermutasTodas" onclick="filtrarPanelPermutas('todas')">Todas</button>
+            <button class="btn-tab" id="filtroPermutasPendientes" onclick="filtrarPanelPermutas('pendientes')">Pendientes</button>
+            <button class="btn-tab" id="filtroPermutasSaldadas" onclick="filtrarPanelPermutas('saldadas')">Saldadas</button>
+        </div>
+
+        <div class="permutas-list-panel" id="listaGeneralPermutas">
+            <div style="text-align:center; color:var(--text-muted); font-size:11px; padding: 12px;">No hay permutas registradas.</div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL BUSCADOR DE NOTAS -->
+<div class="modal-overlay" id="modalBuscador">
+    <div class="modal-body">
+        <div class="drag-bar"></div>
+        <div class="modal-header">
+            <div>
+                <h3>Buscar Notas</h3>
+                <p>Encuentra rápidamente tus anotaciones:</p>
+            </div>
+            <button class="btn-close" onclick="cerrarBuscadorNotas()">✕</button>
+        </div>
+        <div class="form-group">
+            <input type="text" id="inputBusqueda" placeholder="Escribe para buscar..." oninput="filtrarNotas(this.value)">
+        </div>
+        <div class="search-results-list" id="resultadosBusqueda">
+            <div style="text-align:center; color:var(--text-muted); font-size:11px; padding: 12px;">Empieza a escribir para buscar notas...</div>
+        </div>
     </div>
 </div>
 
@@ -1038,12 +1346,14 @@ const fechaInicioBase = new Date(2025, 11, 29);
 let grupoUsuario = localStorage.getItem('g_grupo');
 let mesActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let diaSeleccionadoKey = null;
+let grupoComparacion = "";
 
-let tipoRefuerzoSeleccionado = 'ninguno';
+let tipoRefuerzoSeleccionado = 'pago';
 let tarifaSeleccionada = 0;
 let indiceSeleccionado = '1.50';
 
 let modificaciones = JSON.parse(localStorage.getItem('g_modificaciones')) || {};
+let notas = JSON.parse(localStorage.getItem('g_notas')) || {};
 let ajustes = JSON.parse(localStorage.getItem('g_ajustes')) || {
     convenio: 1592,
     maxAp: 6,
@@ -1051,6 +1361,8 @@ let ajustes = JSON.parse(localStorage.getItem('g_ajustes')) || {
     horasFinde: 12,
     categoria: 'agente'
 };
+
+let filtroPermutasActual = 'todas';
 
 const TARIFAS_CATEGORIA = {
     agente: { ordinaria: 31.53, nocturna: 34.55, festiva: 36.05, festivaNocturna: 37.58 },
@@ -1070,9 +1382,17 @@ if (!grupoUsuario) {
     actualizarSubtituloGrupo();
 }
 
-if (localStorage.getItem('g_theme') === 'dark') {
+// Inicialización de Tema
+const savedTheme = localStorage.getItem('g_theme');
+if (savedTheme) {
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('btnTheme').textContent = '☀️ Claro';
+    }
+} else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     document.documentElement.setAttribute('data-theme', 'dark');
     document.getElementById('btnTheme').textContent = '☀️ Claro';
+    localStorage.setItem('g_theme', 'dark');
 }
 
 function elegirGrupo(numGrupo) {
@@ -1118,14 +1438,14 @@ function getFechaKey(fecha) {
     return `${y}-${m}-${d}`;
 }
 
-function obtenerTurnoOriginal(fecha) {
+function obtenerTurnoGrupoParaFecha(fecha, grupoNum) {
     const dia = normalizarFecha(fecha);
     const difDias = diasEntre(dia, fechaInicioBase);
     const difSemanas = Math.floor(difDias / 7);
     const diaSemana = (dia.getDay() + 6) % 7; 
 
     const offsetSemanas = { 1: 0, 2: 1, 4: 2, 3: 3, 5: 4 };
-    const semanaBase = offsetSemanas[Number(grupoUsuario) || 1];
+    const semanaBase = offsetSemanas[Number(grupoNum) || 1];
     
     let idxSemana = (semanaBase + difSemanas) % 5;
     if (idxSemana < 0) idxSemana += 5;
@@ -1143,6 +1463,10 @@ function obtenerTurnoOriginal(fecha) {
     return { tipo: "libre", nombre: "Libre", trabaja: false };
 }
 
+function obtenerTurnoOriginal(fecha) {
+    return obtenerTurnoGrupoParaFecha(fecha, grupoUsuario);
+}
+
 function obtenerTurnoFinal(fecha) {
     const key = getFechaKey(fecha);
     if (modificaciones[key]) return modificaciones[key];
@@ -1157,14 +1481,52 @@ function getHorasNominalesDia(fecha) {
     return (esFinde && turno.trabaja) ? Number(ajustes.horasFinde) : Number(ajustes.horasLab);
 }
 
-function calcularDatosAnualesTotales(anioObjetivo) {
+function calcularBalanceHorasRefuerzoDisponibles(excluirKey = null) {
+    let generadasAnual = 0;
+    let gastadasAnual = 0;
+
+    Object.entries(modificaciones).forEach(([k, v]) => {
+        if (v.tipo === 'refuerzo_horas') {
+            generadasAnual += v.horasGeneradas || 0;
+        } else if (v.tipo === 'refuerzo_usado') {
+            if (k !== excluirKey) {
+                const partes = k.split('-');
+                const fechaObj = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+                gastadasAnual += getHorasNominalesDia(fechaObj);
+            }
+        }
+    });
+
+    return generadasAnual - gastadasAnual;
+}
+
+function calcularDatosAnualesTotales(anioObjetivo, excluirKey = null) {
     let horasCuadrantePuras = 0, vacUsadas = 0, apUsados = 0, permisosUsados = 0;
-    let horasRealesTrabajo = 0, totalEurosAnual = 0, totalHorasDeberAnual = 0;
+    let horasRealesTrabajo = 0, totalEurosAnual = 0, totalHorasDeberAnual = 0, fdsLibres = 0;
 
     const inicioAnio = new Date(anioObjetivo, 0, 1);
     const finAnio = new Date(anioObjetivo, 11, 31);
     let curr = new Date(inicioAnio);
 
+    let tempDate = new Date(inicioAnio);
+    while(tempDate.getDay() !== 6 && tempDate <= finAnio) {
+        tempDate.setDate(tempDate.getDate() + 1);
+    }
+    while(tempDate <= finAnio) {
+        const sabado = new Date(tempDate);
+        const domingo = new Date(tempDate);
+        domingo.setDate(domingo.getDate() + 1);
+
+        const turnoSab = obtenerTurnoFinal(sabado);
+        const turnoDom = obtenerTurnoFinal(domingo);
+
+        if (!turnoSab.trabaja && !turnoDom.trabaja) {
+            fdsLibres++;
+        }
+        tempDate.setDate(tempDate.getDate() + 7);
+    }
+
+    curr = new Date(inicioAnio);
     while (curr <= finAnio) {
         const turnoOrig = obtenerTurnoOriginal(curr);
         const hNom = getHorasNominalesDia(curr);
@@ -1175,9 +1537,11 @@ function calcularDatosAnualesTotales(anioObjetivo) {
         const mod = modificaciones[key];
 
         if (mod) {
-            if (mod.tipo === 'vacaciones') vacUsadas += hNom;
-            else if (mod.tipo === 'ap') { apUsados += 1; horasRealesTrabajo += hNom; }
+            if (mod.tipo === 'vacaciones') {
+                if (key !== excluirKey) vacUsadas += hNom;
+            } else if (mod.tipo === 'ap') { apUsados += 1; horasRealesTrabajo += hNom; }
             else if (mod.tipo === 'permiso') { permisosUsados += 1; horasRealesTrabajo += hNom; }
+            else if (mod.tipo === 'refuerzo_usado') { horasRealesTrabajo += hNom; }
             else if (mod.tipo === 'refuerzo_pago') totalEurosAnual += mod.euros || 0;
             else if (mod.tipo === 'refuerzo_horas') totalHorasDeberAnual += mod.horasGeneradas || 0;
             else if (['noche', 'manana', 'tarde'].includes(mod.tipo)) horasRealesTrabajo += hNom;
@@ -1198,14 +1562,177 @@ function calcularDatosAnualesTotales(anioObjetivo) {
         permisosUsados,
         horasRealesTrabajo,
         totalEurosAnual,
-        totalHorasDeberAnual
+        totalHorasDeberAnual,
+        fdsLibres
     };
+}
+
+function cambiarGrupoComparacion(val) {
+    grupoComparacion = val;
+    dibujarCalendario();
+}
+
+function actualizarBannerAlertaTurnoHoy() {
+    const hoy = normalizarFecha(new Date());
+    const turnoHoy = obtenerTurnoFinal(hoy);
+    
+    const banner = document.getElementById("bannerAlertaTurno");
+    const elTitulo = document.getElementById("bannerTituloTurno");
+    const elAnimo = document.getElementById("bannerFraseAnimo");
+    const elNotaHoy = document.getElementById("bannerRecuerdaHoy");
+    const elNotaProxima = document.getElementById("bannerRecuerdaProxima");
+
+    let emoji = "📌";
+    let frase = "¡A disfrutar!";
+    let bgCol = "var(--surface-subtle)";
+    let borderCol = "var(--border)";
+    let textCol = "var(--text)";
+
+    if (turnoHoy.tipo === 'noche') {
+        emoji = "🌙";
+        frase = "¡Mucho ánimo con la noche!";
+        bgCol = "var(--noche-bg)";
+        borderCol = "rgba(79, 70, 229, 0.3)";
+        textCol = "var(--noche)";
+    } else if (turnoHoy.tipo === 'manana') {
+        emoji = "🌅";
+        frase = "¡Mucho ánimo con la mañana!";
+        bgCol = "var(--manana-bg)";
+        borderCol = "rgba(2, 132, 199, 0.3)";
+        textCol = "var(--manana)";
+    } else if (turnoHoy.tipo === 'tarde') {
+        emoji = "🌇";
+        frase = "¡Mucho ánimo con la tarde!";
+        bgCol = "var(--tarde-bg)";
+        borderCol = "rgba(234, 88, 12, 0.3)";
+        textCol = "var(--tarde)";
+    } else if (['libre', 'vacaciones', 'ap', 'permiso', 'refuerzo_usado'].includes(turnoHoy.tipo)) {
+        // Buscar el próximo día que realmente sea M, T, Noche o Refuerzo (excluyendo días libres o de descanso)
+        let turnoFuturo = null;
+        let fechaFutura = new Date(hoy);
+        let diasHastaTrabajo = 0;
+
+        for (let i = 1; i <= 365; i++) {
+            fechaFutura.setDate(fechaFutura.getDate() + 1);
+            const t = obtenerTurnoFinal(fechaFutura);
+            // Comprobamos que sea un turno real de trabajo (Mañana, Tarde, Noche o cualquiera de los Refuerzos)
+            if (['manana', 'tarde', 'noche', 'refuerzo_pago', 'refuerzo_horas'].includes(t.tipo)) {
+                diasHastaTrabajo = i;
+                turnoFuturo = t;
+                break;
+            }
+        }
+
+        // Estilos e iconos según el estado de descanso actual
+        if (turnoHoy.tipo === 'vacaciones') {
+            emoji = "🌴";
+            bgCol = "var(--vacaciones-bg)";
+            borderCol = "var(--vacaciones)";
+            textCol = "var(--vacaciones)";
+        } else if (turnoHoy.tipo === 'ap') {
+            emoji = "📑";
+            bgCol = "var(--ap-bg)";
+            borderCol = "var(--ap)";
+            textCol = "var(--ap)";
+        } else if (turnoHoy.tipo === 'permiso') {
+            emoji = "🏥";
+            bgCol = "var(--permiso-bg)";
+            borderCol = "var(--permiso)";
+            textCol = "var(--permiso)";
+        } else if (turnoHoy.tipo === 'refuerzo_usado') {
+            emoji = "⚡";
+            bgCol = "var(--refuerzo-usado-bg)";
+            borderCol = "var(--refuerzo-usado)";
+            textCol = "var(--refuerzo-usado)";
+        } else {
+            emoji = "🌿";
+            bgCol = "var(--libre-bg)";
+            borderCol = "rgba(22, 163, 74, 0.2)";
+            textCol = "var(--libre)";
+        }
+
+        // Formateador natural del tiempo restante pedido por el usuario
+        if (turnoFuturo) {
+            let textoTiempo = "";
+            if (diasHastaTrabajo === 1) {
+                textoTiempo = "mañana";
+            } else if (diasHastaTrabajo === 2) {
+                textoTiempo = "pasado mañana";
+            } else if (diasHastaTrabajo < 7) {
+                textoTiempo = `en ${diasHastaTrabajo} días`;
+            } else if (diasHastaTrabajo === 7) {
+                textoTiempo = "en 1 semana";
+            } else if (diasHastaTrabajo > 7 && diasHastaTrabajo < 14) {
+                const resto = diasHastaTrabajo - 7;
+                textoTiempo = `en 1 semana y ${resto} ${resto === 1 ? 'día' : 'días'}`;
+            } else if (diasHastaTrabajo >= 14 && diasHastaTrabajo < 30) {
+                const semanas = Math.round(diasHastaTrabajo / 7);
+                textoTiempo = `en ${semanas} semanas`;
+            } else if (diasHastaTrabajo >= 30 && diasHastaTrabajo < 60) {
+                textoTiempo = "en 1 mes";
+            } else if (diasHastaTrabajo >= 60) {
+                const meses = Math.round(diasHastaTrabajo / 30);
+                textoTiempo = `en ${meses} meses`;
+            } else {
+                const nombreDiaSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"][fechaFutura.getDay()];
+                const numDia = fechaFutura.getDate();
+                const nomMes = nombresMeses[fechaFutura.getMonth()];
+                textoTiempo = `el ${nombreDiaSemana} ${numDia} de ${nomMes}`;
+            }
+
+            frase = `Vuelves a trabajar ${textoTiempo} en el turno de <strong>${turnoFuturo.nombre.toUpperCase()}</strong>.`;
+        } else {
+            frase = `Disfruta de tu jornada.`;
+        }
+    }
+
+    banner.style.background = bgCol;
+    banner.style.borderColor = borderCol;
+    elTitulo.style.color = textCol;
+    elTitulo.innerHTML = `${emoji} Turno de hoy: <strong>${turnoHoy.nombre}</strong>`;
+    elAnimo.innerHTML = frase;
+
+    // Lógica de Notas: Hoy y/o la próxima
+    const hoyKey = getFechaKey(hoy);
+    let tieneNotaHoy = notas[hoyKey] && notas[hoyKey].trim() !== "";
+
+    if (tieneNotaHoy) {
+        elNotaHoy.style.display = "block";
+        elNotaHoy.textContent = `📌 Hoy recuerda que: ${notas[hoyKey]}`;
+    } else {
+        elNotaHoy.style.display = "none";
+    }
+
+    let notasFuturas = Object.entries(notas)
+        .filter(([k, v]) => k > hoyKey && v && v.trim() !== "")
+        .sort();
+
+    if (notasFuturas.length > 0) {
+        const [proximaKey, proximoTexto] = notasFuturas[0];
+        const fechaFuturaObj = new Date(proximaKey);
+        const diasDiferencia = diasEntre(normalizarFecha(fechaFuturaObj), hoy);
+
+        let etiquetaTiempo = "";
+        if (diasDiferencia === 1) {
+            etiquetaTiempo = "Mañana recuerda que";
+        } else {
+            const dFormateado = `${fechaFuturaObj.getDate()} de ${nombresMeses[fechaFuturaObj.getMonth()]}`;
+            etiquetaTiempo = `El ${dFormateado} recuerda que`;
+        }
+
+        elNotaProxima.style.display = "block";
+        elNotaProxima.textContent = `⏳ ${etiquetaTiempo}: ${proximoTexto}`;
+    } else {
+        elNotaProxima.style.display = "none";
+    }
 }
 
 function dibujarCalendario() {
     const anio = mesActual.getFullYear();
     const mes = mesActual.getMonth();
     document.getElementById("tituloMes").textContent = `${nombresMeses[mes]} ${anio}`;
+
+    actualizarBannerAlertaTurnoHoy();
 
     const calendario = document.getElementById("calendario");
     calendario.innerHTML = "";
@@ -1220,49 +1747,63 @@ function dibujarCalendario() {
         calendario.appendChild(vacio);
     }
 
-    let nC = 0, mC = 0, tC = 0, lC = 0, hMes = 0, vacMes = 0, apMes = 0, permMes = 0, eurMes = 0, hRefMes = 0;
+    let nC = 0, mC = 0, tC = 0, lC = 0, hMes = 0, vacMes = 0, apMes = 0, permMes = 0, eurMes = 0, hRefMes = 0, refUsadoMes = 0;
     const hoy = normalizarFecha(new Date());
 
     for (let d = 1; d <= ultimoDia; d++) {
         const fecha = new Date(anio, mes, d);
+        const key = getFechaKey(fecha);
         const turno = obtenerTurnoFinal(fecha);
         const hNom = getHorasNominalesDia(fecha);
 
         const cell = document.createElement("div");
         cell.className = `day-cell ${turno.tipo}`;
         if (fecha.getTime() === hoy.getTime()) cell.classList.add("is-today");
-        if (turno.modificado) cell.classList.add("modified");
+
+        if (notas[key] && notas[key].trim() !== "") {
+            cell.classList.add("has-note");
+            cell.title = `Nota: ${notas[key]}`;
+        }
+
+        const headerRow = document.createElement("div");
+        headerRow.className = "day-header-row";
 
         const num = document.createElement("div");
         num.className = "day-num";
         num.textContent = d;
+        headerRow.appendChild(num);
 
-        cell.appendChild(num);
-
-        // INDICADOR ARRIBA (Se añade antes que la placa del turno)
-        let tag = null;
-        if (turno.tipo === 'refuerzo_pago') {
-            tag = document.createElement("span");
-            tag.className = "extra-indicator";
-            tag.textContent = `${turno.euros.toFixed(0)}€`;
+        if (turno.esPermuta) {
+            const indP = document.createElement("span");
+            indP.className = "permuta-indicator";
+            indP.textContent = "⇄";
+            headerRow.appendChild(indP);
+        } else if (turno.tipo === 'refuerzo_pago') {
+            const indR = document.createElement("span");
+            indR.className = "extra-indicator";
+            indR.textContent = `${turno.euros.toFixed(0)}€`;
+            headerRow.appendChild(indR);
         } else if (turno.tipo === 'refuerzo_horas') {
-            tag = document.createElement("span");
-            tag.className = "extra-indicator";
-            tag.textContent = `+${turno.horasGeneradas}h`;
-        } else if (hNom === 12 && turno.trabaja) {
-            tag = document.createElement("span");
-            tag.className = "extra-indicator light";
-            tag.textContent = "12h";
+            const indR = document.createElement("span");
+            indR.className = "extra-indicator";
+            indR.textContent = `+${turno.horasGeneradas}h`;
+            headerRow.appendChild(indR);
         }
 
-        if (tag) {
-            cell.appendChild(tag);
-        }
+        cell.appendChild(headerRow);
 
         const badge = document.createElement("div");
         badge.className = "shift-badge";
         badge.textContent = turno.nombre;
         cell.appendChild(badge);
+
+        if (grupoComparacion) {
+            const turnoComp = obtenerTurnoGrupoParaFecha(fecha, grupoComparacion);
+            const compBadge = document.createElement("div");
+            compBadge.className = "compare-badge";
+            compBadge.textContent = `G${grupoComparacion}: ${turnoComp.nombre.substring(0,3)}`;
+            cell.appendChild(compBadge);
+        }
 
         cell.onclick = () => abrirModalEdicion(fecha, turno);
         calendario.appendChild(cell);
@@ -1278,12 +1819,20 @@ function dibujarCalendario() {
         else if (turno.tipo === 'refuerzo_horas') { hRefMes += turno.horasGeneradas || 0; }
     }
 
+    refUsadoMes = 0;
+    for (let d = 1; d <= ultimoDia; d++) {
+        const fecha = new Date(anio, mes, d);
+        const turno = obtenerTurnoFinal(fecha);
+        if (turno.tipo === 'refuerzo_usado') refUsadoMes += getHorasNominalesDia(fecha);
+    }
+
     document.getElementById("totalNoches").textContent = nC;
     document.getElementById("totalMananas").textContent = mC;
     document.getElementById("totalTardes").textContent = tC;
     document.getElementById("totalLibres").textContent = lC;
     document.getElementById("totalEurosMes").textContent = `${eurMes.toFixed(2)} €`;
     document.getElementById("totalHorasRefMes").textContent = `+${hRefMes} h`;
+    document.getElementById("totalRefUsadoMes").textContent = `${refUsadoMes} h`;
     document.getElementById("totalApMes").textContent = `${apMes} d`;
     document.getElementById("totalPermisosMes").textContent = `${permMes} d`;
     document.getElementById("totalVacMes").textContent = `${vacMes} h`;
@@ -1296,7 +1845,11 @@ function calcularResumenAnual() {
     const datosAnio = calcularDatosAnualesTotales(anio);
 
     document.getElementById("vacTotalAnual").textContent = `${datosAnio.bolsaVacacionesTotal} h`;
-    document.getElementById("vacUsadasAnual").textContent = `${datosAnio.vacUsadas} h`;
+    
+    const refRestantes = calcularBalanceHorasRefuerzoDisponibles();
+    const elemRefRest = document.getElementById("refRestantesAnual");
+    elemRefRest.textContent = `${refRestantes} h`;
+    elemRefRest.style.color = refRestantes >= 0 ? "var(--refuerzo-horas)" : "var(--tarde)";
 
     const vacRest = datosAnio.bolsaVacacionesTotal - datosAnio.vacUsadas;
     const elemVac = document.getElementById("vacRestantesAnual");
@@ -1305,6 +1858,7 @@ function calcularResumenAnual() {
 
     document.getElementById("apAnualResumen").textContent = `${datosAnio.apUsados} / ${ajustes.maxAp} d`;
     document.getElementById("permisosAnualResumen").textContent = `${datosAnio.permisosUsados} d`;
+    document.getElementById("fdsLibresAnual").textContent = `${datosAnio.fdsLibres} fds`;
     document.getElementById("totalEurosAnual").textContent = `${datosAnio.totalEurosAnual.toFixed(2)} €`;
     document.getElementById("totalHorasDeberAnual").textContent = `${datosAnio.totalHorasDeberAnual} h`;
 
@@ -1333,6 +1887,7 @@ function calcularResumenAnual() {
             else if (turno.tipo === 'vacaciones') { vacH += hNom; }
             else if (turno.tipo === 'ap') { apD++; hMes += hNom; }
             else if (turno.tipo === 'permiso') { permD++; hMes += hNom; }
+            else if (turno.tipo === 'refuerzo_usado') { hMes += hNom; }
             else if (turno.tipo === 'refuerzo_pago') { eurM += turno.euros || 0; }
             else if (turno.tipo === 'refuerzo_horas') { horRefM += turno.horasGeneradas || 0; }
         }
@@ -1379,13 +1934,11 @@ function cambiarCategoriaModal(catKey) { renderizarTarifasModal(catKey); }
 
 function seleccionarTipoRefuerzo(tipo) {
     tipoRefuerzoSeleccionado = tipo;
-    document.getElementById("segNinguno").classList.toggle("active", tipo === 'ninguno');
     document.getElementById("segPago").classList.toggle("active", tipo === 'pago');
     document.getElementById("segHoras").classList.toggle("active", tipo === 'horas');
 
     document.getElementById("camposPago").style.display = (tipo === 'pago') ? 'block' : 'none';
     document.getElementById("camposHoras").style.display = (tipo === 'horas') ? 'block' : 'none';
-    document.getElementById("btnAplicarRefuerzo").style.display = (tipo !== 'ninguno') ? 'block' : 'none';
 }
 
 function seleccionarTarifa(valor) {
@@ -1418,7 +1971,7 @@ function exportarGoogleCalendar() {
 
     while (curr <= fin) {
         const turno = obtenerTurnoFinal(curr);
-        if (turno.trabaja || ['vacaciones', 'ap', 'permiso', 'refuerzo_pago'].includes(turno.tipo)) {
+        if (turno.trabaja || ['vacaciones', 'ap', 'permiso', 'refuerzo_pago', 'refuerzo_usado'].includes(turno.tipo)) {
             const y = curr.getFullYear();
             const m = String(curr.getMonth() + 1).padStart(2, '0');
             const d = String(curr.getDate()).padStart(2, '0');
@@ -1444,30 +1997,181 @@ function exportarGoogleCalendar() {
     link.remove();
 }
 
+function toggleSelectorAmbito(ambito) {
+    const numProfInput = document.getElementById("permutaNumProf").value;
+    verificarDeudaPendiente(numProfInput);
+}
+
+function actualizarTurnoAutomaticoPreview() {
+    if (!diaSeleccionadoKey) return;
+    const grupoSel = document.getElementById("permutaGrupoOrigen").value;
+    const fechaObj = new Date(diaSeleccionadoKey);
+    const turnoCalc = obtenerTurnoGrupoParaFecha(fechaObj, grupoSel);
+    document.getElementById("labelTurnoAutomatico").textContent = `(Turno: ${turnoCalc.nombre})`;
+}
+
+function verificarDeudaPendiente(numProf) {
+    const alerta = document.getElementById("alertaDeudaPendiente");
+    const contenedorCheckboxes = document.getElementById("listaDeudasPendientesCheckbox");
+    const numP = numProf.trim();
+    const ambitoActual = document.getElementById("permutaAmbito").value;
+    
+    if (!numP || !diaSeleccionadoKey) {
+        alerta.style.display = 'none';
+        return;
+    }
+
+    let grupoEncontrado = null;
+    let deudasRaw = [];
+
+    const turnoActual = obtenerTurnoFinal(new Date(diaSeleccionadoKey));
+    let fechaInicioSemanaActual = turnoActual.ambito === 'semana' ? turnoActual.fechaInicioSemana : null;
+
+    Object.entries(modificaciones).forEach(([k, v]) => {
+        if (v.esPermuta && v.numProf === numP) {
+            if (v.grupoOrigen && !grupoEncontrado) {
+                grupoEncontrado = v.grupoOrigen;
+            }
+            if (v.estadoDeuda !== 'saldado') {
+                const vAmbito = v.ambito || 'dia';
+                if (vAmbito !== ambitoActual) return;
+
+                if (vAmbito === 'semana' && v.fechaInicioSemana === fechaInicioSemanaActual) return;
+                if (vAmbito === 'dia' && k === diaSeleccionadoKey) return;
+                
+                deudasRaw.push({ key: k, val: v });
+            }
+        }
+    });
+
+    if (grupoEncontrado) {
+        document.getElementById("permutaGrupoOrigen").value = grupoEncontrado;
+        actualizarTurnoAutomaticoPreview();
+    }
+
+    const deudasAgrupadasMap = new Map();
+
+    deudasRaw.forEach(item => {
+        const idUnico = (item.val.ambito === 'semana') ? item.val.fechaInicioSemana : item.key;
+        if (!deudasAgrupadasMap.has(idUnico)) {
+            deudasAgrupadasMap.set(idUnico, {
+                tipo: item.val.ambito || 'dia',
+                referenciaKey: item.key,
+                fechaInicioSemana: item.val.fechaInicioSemana
+            });
+        }
+    });
+
+    const deudasUnicasLista = Array.from(deudasAgrupadasMap.values());
+
+    if (deudasUnicasLista.length > 0) {
+        alerta.style.display = 'block';
+        contenedorCheckboxes.innerHTML = '';
+        
+        const marcarPorDefecto = (deudasUnicasLista.length === 1);
+
+        deudasUnicasLista.forEach(deuda => {
+            let textoLabel = "";
+            let valorCheckbox = "";
+
+            if (deuda.tipo === 'semana') {
+                valorCheckbox = `semana_${deuda.fechaInicioSemana}`;
+                const partes = deuda.fechaInicioSemana.split('-');
+                const lunes = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+                const domingo = new Date(lunes);
+                domingo.setDate(domingo.getDate() + 6);
+                textoLabel = `🔄 Semana del ${lunes.getDate()} de ${nombresMeses[lunes.getMonth()]} al ${domingo.getDate()} de ${nombresMeses[domingo.getMonth()]}`;
+            } else {
+                valorCheckbox = `dia_${deuda.referenciaKey}`;
+                const [y, m, d] = deuda.referenciaKey.split('-');
+                textoLabel = `🔄 ${d} de ${nombresMeses[m - 1]} de ${y}`;
+            }
+            
+            const label = document.createElement('label');
+            label.style.cssText = "display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; background: var(--surface); padding: 4px 6px; border-radius: 4px; border: 1px solid var(--border); color: var(--text);";
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = valorCheckbox;
+            checkbox.checked = marcarPorDefecto;
+            checkbox.className = 'checkbox-deuda-saldar';
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(textoLabel));
+            contenedorCheckboxes.appendChild(label);
+        });
+    } else {
+        alerta.style.display = 'none';
+    }
+}
+
+function guardarPermutaYSaldarSeleccionadas() {
+    const numProf = document.getElementById("permutaNumProf").value.trim();
+    if (!numProf) return;
+
+    const checkboxes = document.querySelectorAll('.checkbox-deuda-saldar:checked');
+    checkboxes.forEach(cb => {
+        const val = cb.value;
+        if (val.startsWith('dia_')) {
+            const keyDia = val.replace('dia_', '');
+            if (modificaciones[keyDia]) modificaciones[keyDia].estadoDeuda = 'saldado';
+        } else if (val.startsWith('semana_')) {
+            const fechaLunes = val.replace('semana_', '');
+            Object.keys(modificaciones).forEach(k => {
+                const m = modificaciones[k];
+                if (m.esPermuta && m.numProf === numProf && m.ambito === 'semana' && m.fechaInicioSemana === fechaLunes) {
+                    m.estadoDeuda = 'saldado';
+                }
+            });
+        }
+    });
+
+    document.getElementById("permutaEstado").value = 'saldado';
+    document.getElementById("alertaDeudaPendiente").style.display = 'none';
+
+    guardarPermutaDia();
+}
+
+/* GESTIÓN DE MODAL DE EDICIÓN Y PESTAÑAS */
 function abrirModalEdicion(fecha, turnoActual) {
     diaSeleccionadoKey = getFechaKey(fecha);
     const nombreDia = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"][fecha.getDay()];
     document.getElementById("modalTitulo").textContent = `${nombreDia} ${fecha.getDate()} ${nombresMeses[fecha.getMonth()]}`;
     document.getElementById("modalSubtitulo").textContent = `Estado actual: ${turnoActual.nombre}`;
 
-    const turnoOrig = obtenerTurnoOriginal(fecha);
-    const esAusencia = ['vacaciones', 'ap', 'permiso'].includes(turnoActual.tipo);
+    document.getElementById("inputNotaDia").value = notas[diaSeleccionadoKey] || "";
 
-    if (esAusencia) {
-        // Si el día ya tiene una ausencia, mostramos solo opciones de ausencia y ocultamos refuerzo
-        document.getElementById("opcionesEdicionContainer").style.display = "grid";
-        document.getElementById("seccionRefuerzoCard").style.display = "none";
+    const esLibreOGeneralLibre = (turnoActual.tipo === 'libre');
+
+    document.getElementById("tabModalTurno").style.display = esLibreOGeneralLibre ? "none" : "block";
+    document.getElementById("tabModalRefuerzo").style.display = esLibreOGeneralLibre ? "block" : "none";
+
+    if (esLibreOGeneralLibre) {
+        cambiarModalTab('refuerzo');
     } else {
-        const esTrabajo = turnoOrig.trabaja;
-        document.getElementById("opcionesEdicionContainer").style.display = esTrabajo ? "grid" : "none";
-        document.getElementById("seccionRefuerzoCard").style.display = esTrabajo ? "none" : "block";
+        cambiarModalTab('turno');
     }
+
+    if (turnoActual.esPermuta) {
+        document.getElementById("permutaAmbito").value = turnoActual.ambito || 'dia';
+        document.getElementById("permutaNumProf").value = turnoActual.numProf || '';
+        document.getElementById("permutaGrupoOrigen").value = turnoActual.grupoOrigen || '1';
+        document.getElementById("permutaEstado").value = turnoActual.estadoDeuda || 'me_debe';
+        verificarDeudaPendiente(turnoActual.numProf || '');
+    } else {
+        document.getElementById("permutaAmbito").value = 'dia';
+        document.getElementById("permutaNumProf").value = '';
+        document.getElementById("permutaGrupoOrigen").value = '1';
+        document.getElementById("permutaEstado").value = 'me_debe';
+        document.getElementById("alertaDeudaPendiente").style.display = 'none';
+    }
+    toggleSelectorAmbito(document.getElementById("permutaAmbito").value);
+    actualizarTurnoAutomaticoPreview();
 
     const catActual = ajustes.categoria || 'agente';
     document.getElementById("selectCategoriaModal").value = catActual;
     renderizarTarifasModal(catActual);
-
-    seleccionarTipoRefuerzo('ninguno');
+    seleccionarTipoRefuerzo('pago');
     seleccionarIndice('1.50');
     document.getElementById("inputHorasPago").value = 8;
     document.getElementById("valHorasPago").textContent = "8 h";
@@ -1477,29 +2181,91 @@ function abrirModalEdicion(fecha, turnoActual) {
     document.getElementById("modalEdicion").classList.add("active");
 }
 
+function cambiarModalTab(pestana) {
+    const isTurno = pestana === 'turno';
+    const isRefuerzo = pestana === 'refuerzo';
+    const isPermuta = pestana === 'permuta';
+    const isNota = pestana === 'nota';
+
+    document.getElementById('contenidoModalTurno').style.display = isTurno ? 'block' : 'none';
+    document.getElementById('contenidoModalRefuerzo').style.display = isRefuerzo ? 'block' : 'none';
+    document.getElementById('contenidoModalPermuta').style.display = isPermuta ? 'block' : 'none';
+    document.getElementById('contenidoModalNota').style.display = isNota ? 'block' : 'none';
+
+    document.getElementById('tabModalTurno').classList.toggle('active', isTurno);
+    document.getElementById('tabModalRefuerzo').classList.toggle('active', isRefuerzo);
+    document.getElementById('tabModalPermuta').classList.toggle('active', isPermuta);
+    document.getElementById('tabModalNota').classList.toggle('active', isNota);
+}
+
 function cerrarModal() {
     document.getElementById("modalEdicion").classList.remove("active");
     diaSeleccionadoKey = null;
 }
 
+function guardarNotaDia() {
+    if (!diaSeleccionadoKey) return;
+    const textoNota = document.getElementById("inputNotaDia").value.trim();
+    
+    if (textoNota === "") delete notas[diaSeleccionadoKey];
+    else notas[diaSeleccionadoKey] = textoNota;
+
+    localStorage.setItem('g_notas', JSON.stringify(notas));
+    cerrarModal();
+    dibujarCalendario();
+}
+
+function borrarNotaDia() {
+    if (!diaSeleccionadoKey) return;
+    delete notas[diaSeleccionadoKey];
+    localStorage.setItem('g_notas', JSON.stringify(notas));
+    cerrarModal();
+    dibujarCalendario();
+}
+
 function guardarCambioTurno(nuevoTipo) {
     if (!diaSeleccionadoKey) return;
-    const anio = Number(diaSeleccionadoKey.split('-')[0]);
-    const datosAnio = calcularDatosAnualesTotales(anio);
+    const partesFecha = diaSeleccionadoKey.split('-');
+    const fechaObj = new Date(Number(partesFecha[0]), Number(partesFecha[1]) - 1, Number(partesFecha[2]));
+    const anio = fechaObj.getFullYear();
+    const horasNominalDia = getHorasNominalesDia(fechaObj);
 
-    if (nuevoTipo === 'ap' && datosAnio.apUsados >= ajustes.maxAp) {
-        alert(`Límite máximo de AP alcanzado (${ajustes.maxAp} días).`);
-        return;
+    if (nuevoTipo === 'ap') {
+        const datosAnio = calcularDatosAnualesTotales(anio);
+        if (datosAnio.apUsados >= ajustes.maxAp) {
+            alert(`Límite máximo de AP alcanzado (${ajustes.maxAp} días).`);
+            return;
+        }
     }
 
-    const nombresMap = { noche: "Noche", manana: "Mañana", tarde: "Tarde", libre: "Libre", vacaciones: "Vac.", ap: "AP", permiso: "Per." };
-    const trabajaMap = { noche: true, manana: true, tarde: true, libre: false, vacaciones: true, ap: true, permiso: true };
+    if (nuevoTipo === 'vacaciones') {
+        const datosAnio = calcularDatosAnualesTotales(anio, diaSeleccionadoKey);
+        const vacDisponibles = datosAnio.bolsaVacacionesTotal - datosAnio.vacUsadas;
+
+        if (vacDisponibles < horasNominalDia) {
+            alert(`⚠️ No tienes suficientes horas en la bolsa de vacaciones.\n\nDisponibles: ${vacDisponibles} h\nNecesarias para este día: ${horasNominalDia} h`);
+            return;
+        }
+    }
+
+    if (nuevoTipo === 'refuerzo_usado') {
+        const saldoDisponible = calcularBalanceHorasRefuerzoDisponibles(diaSeleccionadoKey);
+
+        if (saldoDisponible < horasNominalDia) {
+            alert(`⚠️ No tienes suficientes horas de refuerzo acumuladas.\n\nDisponibles: ${saldoDisponible} h\nNecesarias para este día: ${horasNominalDia} h`);
+            return;
+        }
+    }
+
+    const nombresMap = { noche: "Noche", manana: "Mañana", tarde: "Tarde", libre: "Libre", vacaciones: "Vacaciones", ap: "Asuntos Propios", permiso: "Permiso", refuerzo_usado: "Refuerzo Usado" };
+    const trabajaMap = { noche: true, manana: true, tarde: true, libre: false, vacaciones: true, ap: true, permiso: true, refuerzo_usado: true };
 
     modificaciones[diaSeleccionadoKey] = {
         tipo: nuevoTipo,
         nombre: nombresMap[nuevoTipo],
         trabaja: trabajaMap[nuevoTipo],
-        modificado: true
+        modificado: true,
+        esPermuta: false
     };
 
     localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
@@ -1509,23 +2275,26 @@ function guardarCambioTurno(nuevoTipo) {
 }
 
 function guardarRefuerzoDia() {
-    if (!diaSeleccionadoKey || tipoRefuerzoSeleccionado === 'ninguno') return;
+    if (!diaSeleccionadoKey) return;
 
-    let objMod = { modificado: true };
-    if (tipoRefuerzoSeleccionado === 'pago') {
-        const horas = parseFloat(document.getElementById("inputHorasPago").value);
-        objMod.tipo = 'refuerzo_pago';
-        objMod.nombre = `Ref. € (${horas}h)`;
-        objMod.trabaja = true;
-        objMod.euros = tarifaSeleccionada * horas;
-    } else if (tipoRefuerzoSeleccionado === 'horas') {
-        const ind = parseFloat(indiceSeleccionado);
-        const horasReal = parseFloat(document.getElementById("inputHorasReal").value);
-        objMod.tipo = 'refuerzo_horas';
-        objMod.nombre = `Ref. (+${Math.round(horasReal * ind)}h)`;
-        objMod.trabaja = false;
-        objMod.horasGeneradas = Math.round(horasReal * ind);
-    }
+   let objMod = { modificado: true, esPermuta: false };
+if (tipoRefuerzoSeleccionado === 'pago') {
+    const horas = parseFloat(document.getElementById("inputHorasPago").value);
+    const eurosCalculados = tarifaSeleccionada * horas;
+    objMod.tipo = 'refuerzo_pago';
+    objMod.nombre = `Refuerzo por ${Math.round(eurosCalculados)}€`;
+    objMod.trabaja = true;
+    objMod.euros = eurosCalculados;
+} else if (tipoRefuerzoSeleccionado === 'horas') {
+    const ind = parseFloat(indiceSeleccionado);
+    const horasReal = parseFloat(document.getElementById("inputHorasReal").value);
+    const horasGeneradasTotal = Math.round(horasReal * ind);
+    objMod.tipo = 'refuerzo_horas';
+    objMod.nombre = `Refuerzo por +${horasGeneradasTotal}h`;
+    objMod.trabaja = false;
+    objMod.horasGeneradas = horasGeneradasTotal;
+}
+
 
     modificaciones[diaSeleccionadoKey] = objMod;
     localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
@@ -1534,13 +2303,244 @@ function guardarRefuerzoDia() {
     calcularResumenAnual();
 }
 
-function restaurarTurnoOriginal() {
+function guardarPermutaDia() {
     if (!diaSeleccionadoKey) return;
-    delete modificaciones[diaSeleccionadoKey];
+
+    const ambito = document.getElementById("permutaAmbito").value;
+    const numProf = document.getElementById("permutaNumProf").value.trim();
+    const grupoOrigen = document.getElementById("permutaGrupoOrigen").value;
+    const estadoDeuda = document.getElementById("permutaEstado").value;
+
+    if (!numProf) {
+        alert("Por favor, introduce el Número Profesional del compañero.");
+        return;
+    }
+
+    if (ambito === 'dia') {
+        const turnoObtenido = obtenerTurnoGrupoParaFecha(new Date(diaSeleccionadoKey), grupoOrigen);
+
+        modificaciones[diaSeleccionadoKey] = {
+            tipo: turnoObtenido.tipo,
+            nombre: turnoObtenido.nombre,
+            trabaja: turnoObtenido.trabaja,
+            modificado: true,
+            esPermuta: true,
+            ambito: 'dia',
+            numProf: numProf,
+            grupoOrigen: grupoOrigen,
+            estadoDeuda: estadoDeuda
+        };
+    } else {
+        const partes = diaSeleccionadoKey.split('-');
+        const fechaBase = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+        const diaSemana = (fechaBase.getDay() + 6) % 7;
+
+        const lunes = new Date(fechaBase);
+        lunes.setDate(lunes.getDate() - diaSemana);
+        const lunesKey = getFechaKey(lunes);
+
+        const datosSemana = {
+            esPermuta: true,
+            ambito: 'semana',
+            numProf: numProf,
+            grupoOrigen: grupoOrigen,
+            estadoDeuda: estadoDeuda,
+            fechaInicioSemana: lunesKey
+        };
+
+        for (let i = 0; i < 7; i++) {
+            const curr = new Date(lunes);
+            curr.setDate(curr.getDate() + i);
+            const keyCurr = getFechaKey(curr);
+
+            const modActual = modificaciones[keyCurr];
+            if (modActual && !modActual.esPermuta && ['vacaciones', 'ap', 'permiso'].includes(modActual.tipo)) {
+                continue; 
+            }
+
+            const turnoGrupo = obtenerTurnoGrupoParaFecha(curr, grupoOrigen);
+            
+            modificaciones[keyCurr] = {
+                ...turnoGrupo,
+                modificado: true,
+                ...datosSemana
+            };
+        }
+    }
+
     localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
     cerrarModal();
     dibujarCalendario();
     calcularResumenAnual();
+}
+
+function restaurarTurnoOriginal() {
+    if (!diaSeleccionadoKey) return;
+    const turnoActual = obtenerTurnoFinal(new Date(diaSeleccionadoKey));
+
+    if (turnoActual.ambito === 'semana' && turnoActual.fechaInicioSemana) {
+        const partes = turnoActual.fechaInicioSemana.split('-');
+        const lunes = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+        for (let i = 0; i < 7; i++) {
+            const curr = new Date(lunes);
+            curr.setDate(curr.getDate() + i);
+            const keyCurr = getFechaKey(curr);
+            if (modificaciones[keyCurr] && modificaciones[keyCurr].esPermuta) {
+                delete modificaciones[keyCurr];
+            }
+        }
+    } else {
+        delete modificaciones[diaSeleccionadoKey];
+    }
+
+    localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+    cerrarModal();
+    dibujarCalendario();
+    calcularResumenAnual();
+}
+
+/* PANEL GENERAL DE PERMUTAS CON ESTADÍSTICAS Y FILTROS */
+function filtrarPanelPermutas(filtro) {
+    filtroPermutasActual = filtro;
+    document.getElementById('filtroPermutasTodas').classList.toggle('active', filtro === 'todas');
+    document.getElementById('filtroPermutasPendientes').classList.toggle('active', filtro === 'pendientes');
+    document.getElementById('filtroPermutasSaldadas').classList.toggle('active', filtro === 'saldadas');
+    renderizarListaPermutas();
+}
+
+function abrirPanelPermutas() {
+    filtroPermutasActual = 'todas';
+    document.getElementById('filtroPermutasTodas').classList.add('active');
+    document.getElementById('filtroPermutasPendientes').classList.remove('active');
+    document.getElementById('filtroPermutasSaldadas').classList.remove('active');
+    
+    renderizarListaPermutas();
+    document.getElementById('modalPanelPermutas').classList.add('active');
+}
+
+function renderizarListaPermutas() {
+    const container = document.getElementById('listaGeneralPermutas');
+    const statsContainer = document.getElementById('estadisticasPermutas');
+    
+    const procesadas = new Set();
+    const permutasUnicas = [];
+
+    let totalMeDebe = 0;
+    let totalLeDebe = 0;
+    let totalSaldadas = 0;
+
+    Object.entries(modificaciones).forEach(([k, v]) => {
+        if (v.esPermuta) {
+            const idUnico = v.ambito === 'semana' ? v.fechaInicioSemana : k;
+            if (!procesadas.has(idUnico)) {
+                procesadas.add(idUnico);
+                permutasUnicas.push({ key: k, val: v, idUnico });
+
+                if (v.estadoDeuda === 'me_debe') totalMeDebe++;
+                else if (v.estadoDeuda === 'le_debe') totalLeDebe++;
+                else if (v.estadoDeuda === 'saldado') totalSaldadas++;
+            }
+        }
+    });
+
+    statsContainer.innerHTML = `
+        <div class="stat-card"><small>Me deben</small><strong>${totalMeDebe}</strong></div>
+        <div class="stat-card"><small>Le debo</small><strong>${totalLeDebe}</strong></div>
+    `;
+
+    const permutasFiltradas = permutasUnicas.filter(item => {
+        if (filtroPermutasActual === 'pendientes') return item.val.estadoDeuda !== 'saldado';
+        if (filtroPermutasActual === 'saldadas') return item.val.estadoDeuda === 'saldado';
+        return true;
+    });
+
+    if (permutasFiltradas.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:11px; padding: 12px;">No hay permutas con este filtro.</div>';
+    } else {
+        container.innerHTML = '';
+        permutasFiltradas.sort().forEach(({ key, val }) => {
+            const [y, m, d] = key.split('-');
+            const fechaStr = val.ambito === 'semana' ? `Semana del ${d} de ${nombresMeses[m - 1]}` : `${d} de ${nombresMeses[m - 1]} de ${y}`;
+            const estadoTexto = val.estadoDeuda === 'me_debe' ? 'Me debe' : (val.estadoDeuda === 'le_debe' ? 'Le debo' : 'Saldado');
+            const colorEstado = val.estadoDeuda === 'saldado' ? 'var(--libre)' : 'var(--tarde)';
+
+            const item = document.createElement('div');
+            item.className = 'permuta-card-item';
+            item.innerHTML = `
+                <div class="permuta-card-header">
+                    <span>📅 ${fechaStr} (${val.ambito})</span>
+                    <span style="color:${colorEstado};">${estadoTexto}</span>
+                </div>
+                <div><strong>Nº Profesional:</strong> ${val.numProf} (Grupo G-${val.grupoOrigen || '1'})</div>
+                <div style="display: flex; gap: 6px; margin-top: 4px;">
+                    ${val.estadoDeuda !== 'saldado' ? `<button class="btn-secondary" style="margin-top:0; padding:4px; font-size:10px; color:var(--libre); border-color:var(--libre);" onclick="marcarSaldado('${val.numProf}')">Saldar</button>` : ''}
+                    <button class="btn-secondary" style="margin-top:0; padding:4px; font-size:10px; color:var(--tarde); border-color:var(--tarde);" onclick="eliminarPermutaEntrada('${key}')">Eliminar</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+}
+
+function cerrarPanelPermutas() {
+    document.getElementById('modalPanelPermutas').classList.remove('active');
+}
+
+function marcarSaldado(numProf) {
+    Object.keys(modificaciones).forEach(k => {
+        if (modificaciones[k].esPermuta && modificaciones[k].numProf === numProf) {
+            modificaciones[k].estadoDeuda = 'saldado';
+        }
+    });
+    localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+    renderizarListaPermutas();
+    dibujarCalendario();
+}
+
+function eliminarPermutaEntrada(key) {
+    diaSeleccionadoKey = key;
+    restaurarTurnoOriginal();
+    renderizarListaPermutas();
+}
+
+/* BUSCADOR DE NOTAS */
+function abrirBuscadorNotas() {
+    document.getElementById('inputBusqueda').value = '';
+    document.getElementById('resultadosBusqueda').innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:11px; padding: 12px;">Escribe alguna palabra clave para buscar entre tus notas...</div>';
+    document.getElementById('modalBuscador').classList.add('active');
+}
+function cerrarBuscadorNotas() { document.getElementById('modalBuscador').classList.remove('active'); }
+
+function filtrarNotas(query) {
+    const container = document.getElementById('resultadosBusqueda');
+    const q = query.toLowerCase().trim();
+    if (!q) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:11px; padding: 12px;">Escribe alguna palabra clave...</div>';
+        return;
+    }
+
+    const coincidencias = Object.entries(notas).filter(([key, texto]) => texto.toLowerCase().includes(q));
+    if (coincidencias.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:11px; padding: 12px;">No se encontraron notas con ese texto.</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    coincidencias.forEach(([key, texto]) => {
+        const [y, m, d] = key.split('-');
+        const fechaFormateada = `${d} de ${nombresMeses[m - 1]} de ${y}`;
+
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        item.innerHTML = `<strong>${fechaFormateada}</strong> ${texto}`;
+        item.onclick = () => {
+            cerrarBuscadorNotas();
+            mesActual = new Date(y, m - 1, 1);
+            dibujarCalendario();
+            calcularResumenAnual();
+        };
+        container.appendChild(item);
+    });
 }
 
 function abrirAjustes() {
@@ -1593,7 +2593,7 @@ function irAHoy() {
 }
 
 function exportarDatos() {
-    const exportObj = { grupo: grupoUsuario, modificaciones, ajustes };
+    const exportObj = { grupo: grupoUsuario, modificaciones, notas, ajustes };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
     const a = document.createElement('a');
     a.href = dataStr;
@@ -1604,14 +2604,21 @@ function exportarDatos() {
 }
 
 function importarDatos(event) {
+    if (!confirm("⚠️ ¿Estás seguro de que deseas restaurar este archivo? Se sobrescribirán los datos y modificaciones actuales.")) {
+        event.target.value = '';
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
             if (data.grupo) { grupoUsuario = data.grupo; localStorage.setItem('g_grupo', grupoUsuario); }
             if (data.modificaciones) modificaciones = data.modificaciones;
+            if (data.notas) notas = data.notas;
             if (data.ajustes) ajustes = data.ajustes;
             localStorage.setItem('g_modificaciones', JSON.stringify(modificaciones));
+            localStorage.setItem('g_notas', JSON.stringify(notas));
             localStorage.setItem('g_ajustes', JSON.stringify(ajustes));
             actualizarSubtituloGrupo();
             dibujarCalendario();
